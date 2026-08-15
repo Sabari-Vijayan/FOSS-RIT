@@ -1,0 +1,52 @@
+/* ==========================================================================
+   FOSS Club Animations & Micro-interactions
+   ========================================================================== */
+
+@keyframes pulse-subtle {
+  0% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}
+
+.live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: var(--foss-mint);
+  border-radius: 50%;
+  position: relative;
+}
+
+.live-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  border: 2px solid var(--foss-mint);
+  animation: pulse-subtle 1.8s infinite ease-out;
+}
+
+.interactive-hover-card {
+  transition: transform var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.interactive-hover-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--foss-mint);
+  box-shadow: var(--shadow-mint);
+}
+
+.mascot-avatar {
+  transition: transform var(--transition-normal);
+}
+
+.mascot-avatar:hover {
+  transform: scale(1.1) rotate(4deg);
+}
+
+.animate-slide-in {
+  animation: slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
