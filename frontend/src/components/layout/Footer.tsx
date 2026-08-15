@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { ExternalLink, Terminal } from 'lucide-react';
 import { GithubIcon } from '../ui/Icons';
 
@@ -40,10 +41,10 @@ export const Footer: React.FC<FooterProps> = ({ onOpenJoin }) => {
           <div>
             <h4 style={{ fontSize: '0.95rem', marginBottom: 'var(--space-md)' }}>Quick Links</h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.88rem' }}>
-              <li><a href="#about" className="nav-link">Why Join</a></li>
-              <li><a href="#events" className="nav-link">Bootcamps & Sprints</a></li>
-              <li><a href="#projects" className="nav-link">Projects Radar</a></li>
-              <li><a href="#manifesto" className="nav-link">Software Freedoms</a></li>
+              <li><Link to="/" className="nav-link">Overview</Link></li>
+              <li><Link to="/events" className="nav-link">Workshops & Sessions</Link></li>
+              <li><Link to="/projects" className="nav-link">Projects Radar</Link></li>
+              <li><a href="/#manifesto" className="nav-link">Software Freedoms</a></li>
             </ul>
           </div>
 
