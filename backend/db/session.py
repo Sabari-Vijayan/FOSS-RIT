@@ -46,55 +46,8 @@ def get_db():
         db.close()
 
 def init_db():
-    """Create all tables and seed initial campus projects if empty."""
+    """Create all tables if they do not exist."""
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         print(f"[Database] Notice during table creation: {e}")
-
-    db: Session = SessionLocal()
-    try:
-        # Seed Projects if database is empty
-        if db.query(ProjectDB).count() == 0:
-            initial_projects = [
-                ProjectDB(
-                    id="proj-1",
-                    name="rit-campushub",
-                    description="Centralized student dashboard for Rajiv Gandhi Institute of Tech. Timetables, bus routes, and notice alerts.",
-                    repo_url="https://github.com/foss-rit/rit-campushub",
-                    tech_stack=["React", "TypeScript", "Tailwind", "FastAPI"],
-                    stars=42,
-                    forks=14,
-                    open_issues=3,
-                    submitted_by_username="foss-rit-admin"
-                ),
-                ProjectDB(
-                    id="proj-2",
-                    name="kottayam-bus-tracker",
-                    description="Open-source crowd-sourced live GPS tracking for private & KSRTC buses running via Pampady & RIT Campus.",
-                    repo_url="https://github.com/foss-rit/kottayam-bus-tracker",
-                    tech_stack=["Python", "FastAPI", "PostgreSQL", "Leaflet"],
-                    stars=28,
-                    forks=8,
-                    open_issues=4,
-                    submitted_by_username="foss-rit-admin"
-                ),
-                ProjectDB(
-                    id="proj-3",
-                    name="linux-lab-provisioner",
-                    description="Ansible playbooks and zero-touch scripts to configure Arch Linux on college CS department lab machines.",
-                    repo_url="https://github.com/foss-rit/linux-lab-provisioner",
-                    tech_stack=["Shell", "Python", "Ansible", "Linux"],
-                    stars=19,
-                    forks=5,
-                    open_issues=5,
-                    submitted_by_username="foss-rit-admin"
-                )
-            ]
-            db.add_all(initial_projects)
-            db.commit()
-            print("[Database] Seeded initial campus FOSS projects.")
-    except Exception as e:
-        print(f"[Database] Notice during seeding: {e}")
-    finally:
-        db.close()
