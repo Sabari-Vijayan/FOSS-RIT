@@ -26,7 +26,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenJoin }) => {
   const { theme, toggleTheme } = useTheme();
-  const { user, logout, isOAuthConfigured, redirectToGitHub, loginDev } = useAuth();
+  const { user, logout, redirectToGitHub } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -53,12 +53,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenJoin }) => {
   };
 
   const handleLoginClick = () => {
-    if (isOAuthConfigured) {
-      redirectToGitHub();
-    } else {
-      const devName = prompt('Enter your GitHub username for dev login:', 'rit-developer') || 'rit-developer';
-      loginDev(devName);
-    }
+    redirectToGitHub();
   };
 
   return (

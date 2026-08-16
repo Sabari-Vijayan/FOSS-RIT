@@ -12,7 +12,7 @@ interface ProjectModalProps {
 }
 
 export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { user, isOAuthConfigured, redirectToGitHub, loginDev } = useAuth();
+  const { user, redirectToGitHub } = useAuth();
   const { showToast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [repoUrl, setRepoUrl] = useState('');
@@ -20,12 +20,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, onS
   if (!isOpen) return null;
 
   const handleLoginClick = () => {
-    if (isOAuthConfigured) {
-      redirectToGitHub();
-    } else {
-      const devName = prompt('Enter your GitHub username for dev login:', 'rit-developer') || 'rit-developer';
-      loginDev(devName);
-    }
+    redirectToGitHub();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

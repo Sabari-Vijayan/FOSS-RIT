@@ -112,11 +112,14 @@ export const api = {
     }
   },
 
-  async loginWithGitHub(code: string): Promise<AuthResponse> {
+  async loginWithGitHub(code: string, redirectUri?: string): Promise<AuthResponse> {
     const res = await fetch(`${API_BASE}/auth/github`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ 
+        code, 
+        redirect_uri: redirectUri || `${window.location.origin}/auth/callback` 
+      })
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ detail: 'GitHub authentication failed' }));

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -11,27 +11,34 @@ export const AuthCallbackPage: React.FC = () => {
   const { loginWithCode } = useAuth();
   const { showToast } = useToast();
   const [error, setError] = useState<string | null>(null);
+  const hasProcessedRef = useRef(false);
 
   useEffect(() => {
+    if (hasProcessedRef.current) return;
+
     const code = searchParams.get('code');
     const err = searchParams.get('error_description') || searchParams.get('error');
 
     if (err) {
+      hasProcessedRef.current = true;
       setError(err);
       showToast(err, 'error');
       return;
     }
 
     if (!code) {
+      hasProcessedRef.current = true;
       setError('No authorization code provided from GitHub.');
       return;
     }
+
+    hasProcessedRef.current = true;
 
     const processAuth = async () => {
       try {
         const user = await loginWithCode(code);
         showToast(`Welcome back, @${user.username}!`, 'success');
-        navigate('/projects', { replace: true });
+        navigate('/', { replace: true });
       } catch (e: any) {
         setError(e.message || 'Authentication failed');
         showToast(e.message || 'Authentication failed', 'error');
@@ -39,7 +46,7 @@ export const AuthCallbackPage: React.FC = () => {
     };
 
     processAuth();
-  }, [searchParams]);
+  }, []);
 
   return (
     <div style={{

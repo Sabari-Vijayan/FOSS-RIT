@@ -5,20 +5,35 @@ from db.session import get_db
 from db.models import UserDB
 from schemas.auth import UserPublic, AuthResponse, VerifyStudentEmail
 from core.security import create_access_token, get_current_user
+from core.config import settings
 from services.github_service import exchange_github_code
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+@router.get("/config")
+def get_auth_configuration():
+    """Return public OAuth configuration status."""
+    is_configured = bool(settings.GITHUB_CLIENT_ID and settings.GITHUB_CLIENT_SECRET)
+    return {
+        "is_oauth_configured": is_configured,
+        "github_client_id": settings.GITHUB_CLIENT_ID or ""
+    }
 
 @router.post("/github", response_model=AuthResponse)
 async def github_oauth_callback(payload: dict, db: Session = Depends(get_db)):
     """Exchange GitHub OAuth authorization code for verified user session and JWT."""
     code = payload.get("code")
+    redirect_uri = payload.get("redirect_uri")
     if not code:
         raise HTTPException(status_code=400, detail="Missing authorization code from GitHub.")
 
-    profile = await exchange_github_code(code)
+    profile = await exchange_github_code(code, redirect_uri=redirect_uri)
     
-    user = db.query(UserDB).filter(UserDB.github_id == profile["github_id"]).first()
+    # Lookup by github_id OR by username (to seamlessly link/upgrade dev test accounts)
+    user = db.query(UserDB).filter(
+        (UserDB.github_id == profile["github_id"]) | (UserDB.username.ilike(profile["username"]))
+    ).first()
+
     if not user:
         user = UserDB(
             github_id=profile["github_id"],
@@ -31,6 +46,8 @@ async def github_oauth_callback(payload: dict, db: Session = Depends(get_db)):
         )
         db.add(user)
     else:
+        # Upgrade account to official GitHub OAuth ID & live profile
+        user.github_id = profile["github_id"]
         user.username = profile["username"]
         user.display_name = profile["display_name"]
         user.avatar_url = profile["avatar_url"]
@@ -78,11 +95,11 @@ async def verify_student_status(
 @router.post("/dev-login", response_model=AuthResponse)
 async def dev_quick_login(username: str = "rit-developer", db: Session = Depends(get_db)):
     """Local development quick login helper."""
-    user = db.query(UserDB).filter(UserDB.username == username).first()
+    user = db.query(UserDB).filter(UserDB.username.ilike(username)).first()
     if not user:
         user_role = "admin" if "admin" in username.lower() else "member"
         user = UserDB(
-            github_id=f"dev-{username}",
+            github_id=f"dev-{username.lower()}",
             username=username,
             display_name=f"{username.capitalize()} (Dev)",
             email=f"{username}@rit.ac.in",

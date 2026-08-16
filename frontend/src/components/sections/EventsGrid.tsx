@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Event } from '../../types';
-import { Calendar, MapPin, RefreshCw, Ticket, ArrowRight, Search, Zap, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, Ticket, ArrowRight, Search, Zap, ExternalLink } from 'lucide-react';
 
 interface EventsGridProps {
   onOpenRsvp: (event: Event) => void;
@@ -18,50 +18,29 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
   limit,
   showViewAll = false,
   showSearch = false,
-  title = "Bootcamps & Hackathons",
-  tagline = "// UPCOMING SESSIONS"
+  title = "Events",
+  tagline = "// TINKERHUB RIT SESSIONS"
 }) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<'all' | 'workshop' | 'talk' | 'hackathon'>('all');
 
-  const loadEvents = async () => {
-    setLoading(true);
-    try {
-      const data = await api.getEvents();
-      setEvents(data);
-    } catch {
-      // Handled in api client fallback
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSyncTinkerHub = async () => {
-    setSyncing(true);
-    setSyncStatus('Syncing live campus schedule with TinkerHub RIT...');
-    try {
-      const res = await api.syncTinkerHub();
-      if (res.events && res.events.length > 0) {
-        setEvents(res.events);
-      } else {
-        await loadEvents();
-      }
-      setSyncStatus(`Updated! Synced ${res.synced_total || 0} sessions live from TinkerHub RIT.`);
-      setTimeout(() => setSyncStatus(null), 4000);
-    } catch (err: any) {
-      setSyncStatus(err.message || 'Sync failed');
-      setTimeout(() => setSyncStatus(null), 4000);
-    } finally {
-      setSyncing(false);
-    }
-  };
-
+  // Automatically fetch and synchronize events on mount
   useEffect(() => {
-    loadEvents();
+    const fetchEvents = async () => {
+      setLoading(true);
+      try {
+        const data = await api.getEvents();
+        setEvents(data);
+      } catch (err) {
+        console.warn('[Events] Using cached or fallback events', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
   }, []);
 
   const filteredEvents = events.filter(e => {
@@ -84,7 +63,7 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
     return (
       e.title.toLowerCase().includes(q) ||
       e.description.toLowerCase().includes(q) ||
-      e.location.toLowerCase().includes(q) ||
+      (e.location && e.location.toLowerCase().includes(q)) ||
       typeLower.includes(q)
     );
   });
@@ -115,29 +94,6 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
               </div>
             )}
 
-            {/* Sync TinkerHub Button */}
-            <button 
-              className="btn btn-secondary btn-sm" 
-              onClick={handleSyncTinkerHub}
-              disabled={syncing || loading}
-              title="Scrape and sync latest events live from TinkerHub RIT campus radar"
-              style={{ borderColor: 'rgba(253, 152, 0, 0.4)', color: '#ff9d00' }}
-            >
-              <Zap size={14} className={syncing ? 'spin' : ''} />
-              {syncing ? 'Syncing...' : 'Sync TinkerHub'}
-            </button>
-
-            {/* Refresh Button */}
-            <button 
-              className="btn btn-ghost btn-sm" 
-              onClick={loadEvents}
-              disabled={loading || syncing}
-              title="Refresh schedule"
-            >
-              <RefreshCw size={14} className={loading ? 'spin' : ''} />
-              Refresh
-            </button>
-
             {showViewAll && (
               <Link to="/events" className="btn btn-ghost btn-sm">
                 View all <ArrowRight size={14} />
@@ -145,25 +101,6 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
             )}
           </div>
         </div>
-
-        {/* Sync Status Banner */}
-        {syncStatus && (
-          <div style={{
-            background: 'rgba(253, 152, 0, 0.1)',
-            border: '1px solid rgba(253, 152, 0, 0.3)',
-            borderRadius: 'var(--radius-md)',
-            padding: '8px 16px',
-            fontSize: '0.85rem',
-            color: '#ffaa2b',
-            marginBottom: 'var(--space-lg)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <Zap size={15} />
-            <span>{syncStatus}</span>
-          </div>
-        )}
 
         {/* Category Filters by Session Format */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: 'var(--space-xl)', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -206,13 +143,13 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
             padding: 'var(--space-2xl)',
             textAlign: 'center'
           }}>
-            <p>No sessions found matching current criteria.</p>
+            <p>{loading ? 'Loading live campus events...' : 'No sessions found matching current criteria.'}</p>
           </div>
         ) : (
           <div className="events-grid">
             {displayedEvents.map(event => {
               const isFull = event.capacity > 0 && event.registered_count >= event.capacity;
-              const tinkerHubLink = event.event_url || "https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor";
+              const tinkerHubLink = event.event_url || event.registration_link || "https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor";
 
               return (
                 <div key={event.id} className="event-card interactive-hover-card">
@@ -299,7 +236,7 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
         {showViewAll && (
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-2xl)' }}>
             <Link to="/events" className="btn btn-secondary" style={{ padding: '12px 28px', fontSize: '0.95rem' }}>
-              View All Workshops & Sessions <ArrowRight size={16} />
+              View All Campus Events <ArrowRight size={16} />
             </Link>
           </div>
         )}

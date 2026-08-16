@@ -6,10 +6,10 @@ import httpx
 from typing import List, Dict, Any
 from core.config import settings
 
-# 5-minute In-Memory Cache
+# 10-minute In-Memory Cache for live events
 _EVENTS_CACHE: List[Dict[str, Any]] = []
 _CACHE_TIMESTAMP: float = 0
-_CACHE_TTL_SECONDS: float = 300  # 5 minutes
+_CACHE_TTL_SECONDS: float = 600  # 10 minutes
 
 def get_cached_events() -> List[Dict[str, Any]]:
     global _EVENTS_CACHE, _CACHE_TIMESTAMP
@@ -20,8 +20,10 @@ def get_cached_events() -> List[Dict[str, Any]]:
 
 def set_cached_events(events: List[Dict[str, Any]]) -> None:
     global _EVENTS_CACHE, _CACHE_TIMESTAMP
-    _EVENTS_CACHE = events
-    _CACHE_TIMESTAMP = time.time()
+    # Only cache real scraped lists, never cache small fallbacks
+    if events and len(events) >= 3:
+        _EVENTS_CACHE = events
+        _CACHE_TIMESTAMP = time.time()
 
 def clear_events_cache() -> None:
     global _EVENTS_CACHE, _CACHE_TIMESTAMP
@@ -124,7 +126,7 @@ def parse_nuxt3_campus_events(html: str) -> List[Dict[str, Any]]:
                 else:
                     loc_text = "RIT Kottayam Campus (Velloor)"
 
-                # Official TinkerHub registration link (ALWAYS leading to that TinkerHub event page)
+                # Official TinkerHub registration link
                 if unique_id and str(unique_id).isalnum():
                     tinkerhub_event_url = f"https://tinkerhub.org/events/{unique_id}"
                 else:
@@ -226,18 +228,19 @@ async def scrape_tinkerhub_events(force_refresh: bool = False) -> List[Dict[str,
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
     }
 
-    try:
-        async with httpx.AsyncClient(follow_redirects=True, timeout=12.0) as client:
-            res = await client.get(url, headers=headers)
-            
-            if res.status_code == 200:
-                events = parse_nuxt3_campus_events(res.text)
-                if events:
-                    set_cached_events(events)
-                    return events
-    except Exception as e:
-        print(f"[TinkerHub Campus Scraper] Error fetching RIT campus events: {e}")
+    # Retry up to 2 times with a generous 18s timeout
+    for attempt in range(2):
+        try:
+            async with httpx.AsyncClient(follow_redirects=True, timeout=18.0) as client:
+                res = await client.get(url, headers=headers)
+                
+                if res.status_code == 200:
+                    events = parse_nuxt3_campus_events(res.text)
+                    if events and len(events) >= 3:
+                        set_cached_events(events)
+                        return events
+        except Exception as e:
+            print(f"[TinkerHub Campus Scraper] Attempt {attempt + 1} warning: {e}")
 
-    fallback = _get_fallback_events()
-    set_cached_events(fallback)
-    return fallback
+    # Fallback without polluting cache
+    return _get_fallback_events()
