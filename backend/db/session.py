@@ -4,10 +4,14 @@ from sqlalchemy.orm import sessionmaker, Session
 from core.config import settings
 from db.models import Base, ProjectDB, MemberDB, UserDB
 
-DATABASE_URL = settings.DATABASE_URL
+DATABASE_URL = settings.DATABASE_URL or ""
+
+# Normalize postgres:// to postgresql:// for SQLAlchemy 2.0
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 # Fallback to local SQLite if DATABASE_URL is not configured
-if not DATABASE_URL or "your-project-ref" in DATABASE_URL or "postgres.your-project" in DATABASE_URL:
+if not DATABASE_URL or "your-project-ref" in DATABASE_URL or "postgres.your-project" in DATABASE_URL or "sqlite" in DATABASE_URL:
     db_path = Path(__file__).resolve().parent.parent / "foss_club.db"
     DATABASE_URL = f"sqlite:///{db_path}"
     print(f"[Database] Using local SQLite database at: {db_path}")
@@ -17,10 +21,18 @@ if not DATABASE_URL or "your-project-ref" in DATABASE_URL or "postgres.your-proj
     )
 else:
     print(f"[Database] Connecting to PostgreSQL (Supabase) database...")
+    # Safe SSL and pooling for Supabase (both port 5432 direct & port 6543 pooler)
+    connect_args = {}
+    if "supabase.co" in DATABASE_URL or "sslmode" not in DATABASE_URL:
+        connect_args = {"sslmode": "require"}
+
     engine = create_engine(
         DATABASE_URL,
         pool_pre_ping=True,
-        pool_recycle=300
+        pool_recycle=300,
+        pool_size=5,
+        max_overflow=10,
+        connect_args=connect_args
     )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -35,8 +47,11 @@ def get_db():
 
 def init_db():
     """Create all tables and seed initial campus projects if empty."""
-    Base.metadata.create_all(bind=engine)
-    
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"[Database] Notice during table creation: {e}")
+
     db: Session = SessionLocal()
     try:
         # Seed Projects if database is empty
@@ -79,31 +94,7 @@ def init_db():
             db.add_all(initial_projects)
             db.commit()
             print("[Database] Seeded initial campus FOSS projects.")
-
-        # Seed founding members if empty
-        if db.query(MemberDB).count() == 0:
-            initial_members = [
-                MemberDB(
-                    id="mem-1",
-                    name="Abhiram K",
-                    email="abhiram@rit.ac.in",
-                    department="Computer Science & Engg",
-                    year_of_study=3,
-                    github_username="abhiram-k",
-                    is_verified_student=True
-                ),
-                MemberDB(
-                    id="mem-2",
-                    name="Gopika Nair",
-                    email="gopika@rit.ac.in",
-                    department="Electronics & Comm Engg",
-                    year_of_study=2,
-                    github_username="gopika-dev",
-                    is_verified_student=False
-                )
-            ]
-            db.add_all(initial_members)
-            db.commit()
-            print("[Database] Seeded initial founding members.")
+    except Exception as e:
+        print(f"[Database] Notice during seeding: {e}")
     finally:
         db.close()
