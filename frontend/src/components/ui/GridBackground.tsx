@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useTheme } from '../../context/ThemeContext';
+import { useVibe } from '../../context/VibeContext';
 
 interface GridPoint {
   x: number;
@@ -13,6 +14,7 @@ interface GridPoint {
 export const GridBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const { theme } = useTheme();
+  const { activeVibe } = useVibe();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -22,25 +24,86 @@ export const GridBackground: React.FC = () => {
     if (!ctx) return;
 
     let animationFrameId: number;
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
     const SPACING = 42; // Distance between grid intersections
     const MOUSE_RADIUS = 160; // Influence radius for cursor
     const REPEL_STRENGTH = 45; // Maximum displacement
     const SPRING_TENSION = 0.05; // Elastic return speed
     const DAMPING = 0.86; // Friction to settle wave
 
+    const isPhoneDevice = () => {
+      return (
+        window.innerWidth <= 768 ||
+        window.matchMedia('(max-width: 768px)').matches ||
+        ('ontouchstart' in window && window.innerWidth <= 1024)
+      );
+    };
+
+    const isDark = theme === 'dark' || document.documentElement.getAttribute('data-theme') !== 'light';
+    const vibeRgb = activeVibe?.rgb || '8, 183, 79';
+
+    // If on phone / mobile device: render static grid once and do NOT animate on scroll
+    if (isPhoneDevice()) {
+      const renderStaticGrid = () => {
+        const dpr = window.devicePixelRatio || 1;
+        const logicalWidth = window.innerWidth;
+        const logicalHeight = window.innerHeight;
+
+        canvas.width = logicalWidth * dpr;
+        canvas.height = logicalHeight * dpr;
+        ctx.resetTransform();
+        ctx.scale(dpr, dpr);
+
+        ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)';
+
+        // Draw static horizontal lines
+        const rows = Math.ceil(logicalHeight / SPACING) + 1;
+        for (let r = 0; r <= rows; r++) {
+          const y = r * SPACING;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(logicalWidth, y);
+          ctx.stroke();
+        }
+
+        // Draw static vertical lines
+        const cols = Math.ceil(logicalWidth / SPACING) + 1;
+        for (let c = 0; c <= cols; c++) {
+          const x = c * SPACING;
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, logicalHeight);
+          ctx.stroke();
+        }
+      };
+
+      renderStaticGrid();
+
+      const handleResizeMobile = () => {
+        renderStaticGrid();
+      };
+
+      window.addEventListener('resize', handleResizeMobile);
+      return () => {
+        window.removeEventListener('resize', handleResizeMobile);
+      };
+    }
+
+    // --- Desktop Interactive & Physics Animation ---
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
     let cols = Math.ceil(width / SPACING) + 2;
     let rows = Math.ceil(height / SPACING) + 2;
-
     let points: GridPoint[][] = [];
 
     // Initialize point grid
     const initGrid = () => {
-      width = canvas.width = window.innerWidth * window.devicePixelRatio;
-      height = canvas.height = window.innerHeight * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      const dpr = window.devicePixelRatio || 1;
+      width = canvas.width = window.innerWidth * dpr;
+      height = canvas.height = window.innerHeight * dpr;
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
 
       const logicalWidth = window.innerWidth;
       const logicalHeight = window.innerHeight;
@@ -83,51 +146,17 @@ export const GridBackground: React.FC = () => {
       mouseY = -9999;
     };
 
-    // Scroll perturbation wave
-    let lastScrollY = window.scrollY;
-    let scrollWavePhase = 0;
-
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollDiff = currentScrollY - lastScrollY;
-      lastScrollY = currentScrollY;
-
-      // Inject wave energy on scroll
-      const energy = Math.max(-25, Math.min(25, scrollDiff * 0.8));
-      scrollWavePhase += 0.3;
-
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const p = points[r]?.[c];
-          if (!p) continue;
-          const wave = Math.sin(c * 0.3 + scrollWavePhase) * energy * 0.4;
-          p.vy += wave;
-        }
-      }
-    };
-
-    // Touch ripple
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        const touch = e.touches[0];
-        mouseX = touch.clientX;
-        mouseY = touch.clientY;
-      }
-    };
-
     const handleResize = () => {
       initGrid();
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('mouseleave', handleMouseLeave);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
     window.addEventListener('resize', handleResize);
 
     let time = 0;
 
-    // Main animation loop
+    // Main animation loop for desktop
     const animate = () => {
       time += 0.02;
       const logicalWidth = window.innerWidth;
@@ -135,14 +164,12 @@ export const GridBackground: React.FC = () => {
 
       ctx.clearRect(0, 0, logicalWidth, logicalHeight);
 
-      const isDark = theme === 'dark' || document.documentElement.getAttribute('data-theme') !== 'light';
-
       // 1. Update Physics for Points
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const p = points[r][c];
 
-          // Mouse repel & wave distortion
+          // Mouse repel & distortion
           const dx = p.x - mouseX;
           const dy = p.y - mouseY;
           const dist = Math.sqrt(dx * dx + dy * dy);
@@ -150,7 +177,6 @@ export const GridBackground: React.FC = () => {
           if (dist < MOUSE_RADIUS && dist > 0) {
             const force = (1 - dist / MOUSE_RADIUS) * REPEL_STRENGTH;
             const angle = Math.atan2(dy, dx);
-            // Repel away from cursor + slight tangential wave twist
             const repelX = Math.cos(angle) * force * 0.25;
             const repelY = Math.sin(angle) * force * 0.25;
 
@@ -158,8 +184,8 @@ export const GridBackground: React.FC = () => {
             p.vy += repelY;
           }
 
-          // Gentle ambient wave motion (always alive)
-          const ambientWave = Math.sin(time + c * 0.2 + r * 0.2) * 0.15;
+          // Gentle ambient wave motion
+          const ambientWave = Math.sin(time + c * 0.2 + r * 0.2) * 0.12;
           p.vy += ambientWave;
 
           // Spring physics: pull point back to origin
@@ -183,7 +209,6 @@ export const GridBackground: React.FC = () => {
           const p1 = points[r][c];
           const p2 = points[r][c + 1];
 
-          // Calculate average distance from cursor to highlight active area
           const midX = (p1.x + p2.x) / 2;
           const midY = (p1.y + p2.y) / 2;
           const mouseDist = Math.hypot(midX - mouseX, midY - mouseY);
@@ -234,15 +259,15 @@ export const GridBackground: React.FC = () => {
         }
       }
 
-      // 3. Draw subtle junction points under cursor
+      // 3. Draw subtle junction points under cursor tinted with active builder vibe
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const p = points[r][c];
           const mouseDist = Math.hypot(p.x - mouseX, p.y - mouseY);
 
           if (mouseDist < MOUSE_RADIUS) {
-            const pointAlpha = (1 - mouseDist / MOUSE_RADIUS) * (isDark ? 0.7 : 0.5);
-            ctx.fillStyle = `rgba(8, 183, 79, ${pointAlpha})`;
+            const pointAlpha = (1 - mouseDist / MOUSE_RADIUS) * (isDark ? 0.75 : 0.55);
+            ctx.fillStyle = `rgba(${vibeRgb}, ${pointAlpha})`;
             ctx.beginPath();
             ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
             ctx.fill();
@@ -258,12 +283,10 @@ export const GridBackground: React.FC = () => {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseleave', handleMouseLeave);
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [theme]);
+  }, [theme, activeVibe]);
 
   return (
     <div className="interactive-grid-bg" aria-hidden="true">

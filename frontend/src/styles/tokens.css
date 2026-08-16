@@ -4,11 +4,18 @@
    ========================================================================== */
 
 :root {
-  /* Primary Brand Colors */
-  --foss-mint: #08B74F;
-  --foss-mint-hover: #069e43;
-  --foss-mint-glow: rgba(8, 183, 79, 0.28);
-  --foss-mint-subtle: rgba(8, 183, 79, 0.12);
+  /* Dynamic Vibe Builder Theme Tokens */
+  --vibe-accent: #08B74F;
+  --vibe-hover: #069e43;
+  --vibe-rgb: 8, 183, 79;
+  --vibe-glow: rgba(8, 183, 79, 0.35);
+  --vibe-subtle: rgba(8, 183, 79, 0.12);
+
+  /* Primary Brand Colors (Dynamically Linked to Builder Vibe Theme) */
+  --foss-mint: var(--vibe-accent, #08B74F);
+  --foss-mint-hover: var(--vibe-hover, #069e43);
+  --foss-mint-glow: var(--vibe-glow, rgba(8, 183, 79, 0.28));
+  --foss-mint-subtle: var(--vibe-subtle, rgba(8, 183, 79, 0.12));
   
   --code-night: #1A1A1A;
   --open-gray: #1E1E1E;

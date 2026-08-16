@@ -8,6 +8,8 @@ export interface VibeData {
   role: string;
   emoticon: string;
   color: string;
+  hover: string;
+  rgb: string;
   glow: string;
   subtle: string;
   quote: string;
@@ -21,6 +23,8 @@ export const VIBES: Record<VibeId, VibeData> = {
     role: 'Open Source Explorer',
     emoticon: ':)',
     color: '#08B74F',
+    hover: '#069e43',
+    rgb: '8, 183, 79',
     glow: 'rgba(8, 183, 79, 0.35)',
     subtle: 'rgba(8, 183, 79, 0.12)',
     quote: 'Every master was once a beginner who refused to stop tinkering.',
@@ -37,6 +41,8 @@ export const VIBES: Record<VibeId, VibeData> = {
     role: 'Systems & Backend Architect',
     emoticon: ';)',
     color: '#2B7FFF',
+    hover: '#1a6be6',
+    rgb: '43, 127, 255',
     glow: 'rgba(43, 127, 255, 0.35)',
     subtle: 'rgba(43, 127, 255, 0.12)',
     quote: 'Talk is cheap. Show me the code.',
@@ -53,6 +59,8 @@ export const VIBES: Record<VibeId, VibeData> = {
     role: 'UI/UX & Creative Craftsman',
     emoticon: '^_^',
     color: '#F5C040',
+    hover: '#e0ab28',
+    rgb: '245, 192, 64',
     glow: 'rgba(245, 192, 64, 0.35)',
     subtle: 'rgba(245, 192, 64, 0.12)',
     quote: 'Good software is functional. Great software is a joy to experience.',
@@ -69,6 +77,8 @@ export const VIBES: Record<VibeId, VibeData> = {
     role: 'Low-Level & OS Hacker',
     emoticon: ':|',
     color: '#E84A36',
+    hover: '#d03825',
+    rgb: '232, 74, 54',
     glow: 'rgba(232, 74, 54, 0.35)',
     subtle: 'rgba(232, 74, 54, 0.12)',
     quote: "There is no cloud, just someone else's Linux computer.",
@@ -98,13 +108,24 @@ export const VibeProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [activeTipIndex, setActiveTipIndex] = useState(0);
 
-  const activeVibe = VIBES[vibeId];
+  const activeVibe = VIBES[vibeId] || VIBES.hacker;
 
   useEffect(() => {
     const root = document.documentElement;
+    // Set builder vibe CSS variables
     root.style.setProperty('--vibe-accent', activeVibe.color);
+    root.style.setProperty('--vibe-hover', activeVibe.hover);
+    root.style.setProperty('--vibe-rgb', activeVibe.rgb);
     root.style.setProperty('--vibe-glow', activeVibe.glow);
     root.style.setProperty('--vibe-subtle', activeVibe.subtle);
+
+    // Propagate dynamically to entire site brand/accent tokens
+    root.style.setProperty('--foss-mint', activeVibe.color);
+    root.style.setProperty('--foss-mint-hover', activeVibe.hover);
+    root.style.setProperty('--foss-mint-glow', activeVibe.glow);
+    root.style.setProperty('--foss-mint-subtle', activeVibe.subtle);
+    root.style.setProperty('--shadow-mint', `0 0 24px ${activeVibe.glow}`);
+
     localStorage.setItem('foss_builder_vibe', vibeId);
   }, [activeVibe, vibeId]);
 

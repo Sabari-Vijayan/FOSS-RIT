@@ -198,17 +198,125 @@ export const api = {
   },
 
   // --- Projects APIs ---
-  async getProjects(tech?: string): Promise<Project[]> {
+  async getProjects(tech?: string, forceSync?: boolean): Promise<Project[]> {
     try {
-      const url = tech && tech !== 'all' ? `${API_BASE}/projects?tech=${encodeURIComponent(tech)}` : `${API_BASE}/projects`;
+      const queryParams = new URLSearchParams();
+      if (tech && tech !== 'all') queryParams.append('tech', tech);
+      if (forceSync) queryParams.append('sync', 'true');
+      
+      const qs = queryParams.toString();
+      const url = qs ? `${API_BASE}/projects?${qs}` : `${API_BASE}/projects`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+      const data: Project[] = await res.json();
+      // Cache latest project stats locally
+      localStorage.setItem('foss_projects_cache', JSON.stringify(data));
+      return data;
     } catch {
+      // Check for locally cached projects first
+      const cached = localStorage.getItem('foss_projects_cache');
+      let baseList: Project[] = cached ? JSON.parse(cached) : FALLBACK_PROJECTS;
+
+      // If forceSync is requested and backend is offline, sync directly with GitHub public API
+      if (forceSync) {
+        baseList = await Promise.all(
+          baseList.map(async (p) => {
+            try {
+              const match = p.repo_url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+              if (match) {
+                const owner = match[1];
+                const repo = match[2].replace(/\.git$/, '');
+                const ghRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+                if (ghRes.ok) {
+                  const ghData = await ghRes.json();
+                  return {
+                    ...p,
+                    stars: ghData.stargazers_count ?? p.stars,
+                    forks: ghData.forks_count ?? p.forks,
+                    open_issues: ghData.open_issues_count ?? p.open_issues,
+                    description: ghData.description || p.description
+                  };
+                }
+              }
+            } catch (err) {
+              console.warn(`[Client GitHub Sync] Failed to fetch ${p.repo_url}:`, err);
+            }
+            return p;
+          })
+        );
+        localStorage.setItem('foss_projects_cache', JSON.stringify(baseList));
+      }
+
       return tech && tech !== 'all'
-        ? FALLBACK_PROJECTS.filter(p => p.tech_stack.some(t => t.toLowerCase() === tech.toLowerCase()))
-        : FALLBACK_PROJECTS;
+        ? baseList.filter(p => p.tech_stack.some(t => t.toLowerCase() === tech.toLowerCase()))
+        : baseList;
     }
+  },
+
+  async syncProjects(): Promise<{ success: boolean; message: string; projects: Project[] }> {
+    try {
+      const res = await fetch(`${API_BASE}/projects/sync`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const projects: Project[] = await res.json();
+      localStorage.setItem('foss_projects_cache', JSON.stringify(projects));
+      return {
+        success: true,
+        message: `Successfully synchronized live metrics for ${projects.length} repositories from GitHub!`,
+        projects
+      };
+    } catch {
+      // Fallback: Direct GitHub API query from browser
+      const cached = localStorage.getItem('foss_projects_cache');
+      let list: Project[] = cached ? JSON.parse(cached) : FALLBACK_PROJECTS;
+
+      const synced = await Promise.all(
+        list.map(async (p) => {
+          try {
+            const match = p.repo_url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+            if (match) {
+              const owner = match[1];
+              const repo = match[2].replace(/\.git$/, '');
+              const ghRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+              if (ghRes.ok) {
+                const ghData = await ghRes.json();
+                return {
+                  ...p,
+                  stars: ghData.stargazers_count ?? p.stars,
+                  forks: ghData.forks_count ?? p.forks,
+                  open_issues: ghData.open_issues_count ?? p.open_issues,
+                  description: ghData.description || p.description
+                };
+              }
+            }
+          } catch (err) {
+            console.warn(`[Client GitHub Sync] ${p.name}:`, err);
+          }
+          return p;
+        })
+      );
+
+      localStorage.setItem('foss_projects_cache', JSON.stringify(synced));
+      return {
+        success: true,
+        message: `Synced ${synced.length} repositories directly from GitHub API.`,
+        projects: synced
+      };
+    }
+  },
+
+  async syncSingleProject(projectId: string): Promise<Project> {
+    const res = await fetch(`${API_BASE}/projects/${projectId}/sync`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to sync project stats' }));
+      throw new Error(err.detail || 'Failed to sync project stats');
+    }
+    return await res.json();
   },
 
   async submitProject(projectData: ProjectCreate): Promise<Project> {

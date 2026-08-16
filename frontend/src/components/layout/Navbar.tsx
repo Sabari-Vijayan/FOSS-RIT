@@ -28,6 +28,7 @@ export const Navbar: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [vibeMenuOpen, setVibeMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isVerifyOpen, setIsVerifyOpen] = useState(false);
 
@@ -35,6 +36,7 @@ export const Navbar: React.FC = () => {
   useEffect(() => {
     setMobileMenuOpen(false);
     setDropdownOpen(false);
+    setVibeMenuOpen(false);
   }, [location.pathname, location.hash]);
 
   const handleSectionClick = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
@@ -62,7 +64,7 @@ export const Navbar: React.FC = () => {
           <Link to="/" className="brand-logo">
             <div className="brand-logo-icon">
               <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
-                <rect width="32" height="32" rx="6" fill="#08B74F" />
+                <rect width="32" height="32" rx="6" fill="var(--foss-mint)" />
                 <rect x="7" y="9" width="4" height="4" fill="#0F1710" />
                 <rect x="21" y="9" width="4" height="4" fill="#0F1710" />
                 <path d="M8 18 Q16 27 24 18" stroke="#0F1710" strokeWidth="3.5" strokeLinecap="round" fill="none" />
@@ -125,6 +127,86 @@ export const Navbar: React.FC = () => {
 
           {/* Right: Actions & User Profile */}
           <div className="nav-actions">
+            {/* Builder Vibe Persona Switcher Pill */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setVibeMenuOpen(!vibeMenuOpen)}
+                className="theme-toggle-btn"
+                style={{
+                  width: 'auto',
+                  padding: '0 10px',
+                  gap: '6px',
+                  borderColor: `${activeVibe.color}66`,
+                  boxShadow: `0 0 12px ${activeVibe.glow}`,
+                  transition: 'all 0.25s ease'
+                }}
+                title={`Builder Vibe: ${activeVibe.name} (Click to switch theme)`}
+                aria-label="Switch builder vibe theme"
+              >
+                <MascotIcon vibe={activeVibe.id} size={18} color={activeVibe.color} />
+                <span style={{ fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: activeVibe.color, fontWeight: 700 }}>
+                  {activeVibe.emoticon}
+                </span>
+              </button>
+
+              {vibeMenuOpen && (
+                <div
+                  className="user-dropdown-menu"
+                  style={{ minWidth: '240px', right: 0 }}
+                  onClick={() => setVibeMenuOpen(false)}
+                >
+                  <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--surface-border)' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                      // CHOOSE BUILDER VIBE
+                    </div>
+                  </div>
+                  <div style={{ padding: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {(Object.keys(VIBES) as VibeId[]).map(id => {
+                      const v = VIBES[id];
+                      const isCur = activeVibe.id === id;
+                      return (
+                        <button
+                          key={id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setVibe(id);
+                            setVibeMenuOpen(false);
+                          }}
+                          className="dropdown-item"
+                          style={{
+                            background: isCur ? `${v.color}22` : 'transparent',
+                            border: `1px solid ${isCur ? v.color : 'transparent'}`,
+                            borderRadius: 'var(--radius-sm)',
+                            padding: '6px 10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <MascotIcon vibe={id} size={20} color={v.color} />
+                            <div>
+                              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: isCur ? v.color : 'var(--text-primary)' }}>
+                                {v.name}
+                              </div>
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                {v.role}
+                              </div>
+                            </div>
+                          </div>
+                          <span style={{ fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: v.color, fontWeight: 700 }}>
+                            {v.emoticon}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Theme Toggle */}
             <button 
               onClick={toggleTheme} 
@@ -305,6 +387,45 @@ export const Navbar: React.FC = () => {
               >
                 <ShieldAlert size={16} /> Manifesto
               </a>
+
+              {/* Mobile Builder Persona Selector */}
+              <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--surface-border)' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '8px', fontWeight: 600 }}>
+                  // BUILDER PERSONA
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                  {(Object.keys(VIBES) as VibeId[]).map(id => {
+                    const v = VIBES[id];
+                    const isCur = activeVibe.id === id;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => {
+                          setVibe(id);
+                          setMobileMenuOpen(false);
+                        }}
+                        style={{
+                          background: isCur ? `${v.color}22` : 'var(--surface-raised)',
+                          borderColor: isCur ? v.color : 'var(--surface-border)',
+                          border: '1px solid',
+                          borderRadius: 'var(--radius-sm)',
+                          padding: '8px 4px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <MascotIcon vibe={id} size={22} color={v.color} />
+                        <span style={{ fontSize: '0.7rem', fontFamily: 'var(--font-mono)', color: isCur ? v.color : 'var(--text-secondary)', fontWeight: 600 }}>
+                          {id.charAt(0).toUpperCase() + id.slice(1)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         )}

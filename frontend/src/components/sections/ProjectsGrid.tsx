@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Project } from '../../types';
-import { Star, GitFork, AlertCircle, Plus, ExternalLink, ArrowRight, Search, SlidersHorizontal, CheckCircle2 } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
+import { Star, GitFork, AlertCircle, Plus, ExternalLink, ArrowRight, Search, SlidersHorizontal, CheckCircle2, RefreshCw } from 'lucide-react';
 import { GithubIcon } from '../ui/Icons';
 
 interface ProjectsGridProps {
@@ -11,6 +12,7 @@ interface ProjectsGridProps {
   showViewAll?: boolean;
   showSearch?: boolean;
   showSorting?: boolean;
+  showSync?: boolean;
   title?: string;
   tagline?: string;
 }
@@ -21,6 +23,7 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
   showViewAll = false,
   showSearch = false,
   showSorting = false,
+  showSync = true,
   title = "Projects Built at RIT Kottayam",
   tagline = "// OPEN SOURCE REPOSITORIES"
 }) => {
@@ -28,15 +31,42 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
   const [activeTech, setActiveTech] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'stars' | 'forks' | 'issues' | 'recent'>('stars');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSynced, setLastSynced] = useState<string | null>(() => {
+    return localStorage.getItem('foss_projects_last_synced') || null;
+  });
+  const { showToast } = useToast();
 
   const techFilters = ['all', 'React', 'TypeScript', 'FastAPI', 'Python', 'Go', 'Tailwind'];
 
-  const loadProjects = async (tech?: string) => {
+  const loadProjects = async (tech?: string, forceSync?: boolean) => {
     try {
-      const data = await api.getProjects(tech);
+      const data = await api.getProjects(tech, forceSync);
       setProjects(data);
     } catch {
       // Handled by api client fallback
+    }
+  };
+
+  const handleSyncProjects = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await api.syncProjects();
+      if (res.projects) {
+        setProjects(
+          activeTech && activeTech !== 'all'
+            ? res.projects.filter(p => p.tech_stack.some(t => t.toLowerCase() === activeTech.toLowerCase()))
+            : res.projects
+        );
+      }
+      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setLastSynced(nowTime);
+      localStorage.setItem('foss_projects_last_synced', nowTime);
+      showToast(res.message || 'GitHub stats synchronized successfully!', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to sync with GitHub API', 'error');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -75,7 +105,7 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
             <h2>{title}</h2>
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
             {showSearch && (
               <div style={{ position: 'relative', minWidth: '220px' }}>
                 <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -105,6 +135,19 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
                   <option value="recent">Recently Added</option>
                 </select>
               </div>
+            )}
+
+            {showSync && (
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={handleSyncProjects}
+                disabled={isSyncing}
+                title={lastSynced ? `Last synchronized with GitHub at ${lastSynced}` : "Sync live stars & forks from GitHub"}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <RefreshCw size={13} className={isSyncing ? 'spin' : ''} />
+                <span>{isSyncing ? 'Syncing...' : 'Sync GitHub'}</span>
+              </button>
             )}
 
             {showViewAll && (

@@ -10,13 +10,37 @@ from services.github_service import fetch_github_repo_metadata, verify_repo_auth
 router = APIRouter(prefix="/api/projects", tags=["Projects"])
 
 @router.get("", response_model=List[Project])
-def get_projects(
+async def get_projects(
     tech: Optional[str] = None,
     sort_by: Optional[str] = "stars",
+    sync: Optional[bool] = False,
     db: Session = Depends(get_db)
 ):
-    """Retrieve all featured open-source repositories with filtering."""
+    """Retrieve all featured open-source repositories with optional real-time GitHub sync."""
     projects = db.query(ProjectDB).all()
+
+    if sync:
+        for p in projects:
+            try:
+                meta = await fetch_github_repo_metadata(p.repo_url, is_sync=True)
+                if meta:
+                    if "stars" in meta:
+                        p.stars = meta["stars"]
+                    if "forks" in meta:
+                        p.forks = meta["forks"]
+                    if "open_issues" in meta:
+                        p.open_issues = meta["open_issues"]
+                    if meta.get("tech_stack"):
+                        p.tech_stack = meta["tech_stack"]
+                    if meta.get("description"):
+                        p.description = meta["description"]
+            except Exception as e:
+                print(f"[Projects Sync] Warning syncing {p.repo_url}: {e}")
+        try:
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            print(f"[Projects Sync] DB commit notice: {e}")
     
     if tech and tech.lower() != "all":
         projects = [
@@ -50,6 +74,92 @@ def get_projects(
         output.append(Project(**proj_dict))
 
     return output
+
+@router.post("/sync", response_model=List[Project])
+async def sync_all_projects(db: Session = Depends(get_db)):
+    """Synchronize all featured repositories with GitHub API in real time."""
+    projects = db.query(ProjectDB).all()
+    for p in projects:
+        try:
+            meta = await fetch_github_repo_metadata(p.repo_url, is_sync=True)
+            if meta:
+                if "stars" in meta:
+                    p.stars = meta["stars"]
+                if "forks" in meta:
+                    p.forks = meta["forks"]
+                if "open_issues" in meta:
+                    p.open_issues = meta["open_issues"]
+                if meta.get("tech_stack"):
+                    p.tech_stack = meta["tech_stack"]
+                if meta.get("description"):
+                    p.description = meta["description"]
+        except Exception as e:
+            print(f"[Projects Sync API] Error syncing {p.repo_url}: {e}")
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[Projects Sync API] DB commit notice: {e}")
+
+    # Return refreshed list
+    output = []
+    for p in projects:
+        proj_dict = {
+            "id": p.id,
+            "name": p.name,
+            "description": p.description,
+            "repo_url": p.repo_url,
+            "tech_stack": p.tech_stack or [],
+            "stars": p.stars,
+            "forks": p.forks,
+            "open_issues": p.open_issues,
+            "submitted_by_username": p.submitted_by_username,
+            "is_verified_student": p.submitter.is_verified_student if p.submitter else False,
+            "created_at": p.created_at
+        }
+        output.append(Project(**proj_dict))
+
+    return output
+
+@router.post("/{project_id}/sync", response_model=Project)
+async def sync_single_project(project_id: str, db: Session = Depends(get_db)):
+    """Synchronize an individual repository with GitHub API in real time."""
+    project = db.query(ProjectDB).filter(ProjectDB.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found.")
+
+    try:
+        meta = await fetch_github_repo_metadata(project.repo_url, is_sync=True)
+        if meta:
+            if "stars" in meta:
+                project.stars = meta["stars"]
+            if "forks" in meta:
+                project.forks = meta["forks"]
+            if "open_issues" in meta:
+                project.open_issues = meta["open_issues"]
+            if meta.get("tech_stack"):
+                project.tech_stack = meta["tech_stack"]
+            if meta.get("description"):
+                project.description = meta["description"]
+            db.commit()
+            db.refresh(project)
+    except Exception as e:
+        print(f"[Project Single Sync] Error syncing {project.repo_url}: {e}")
+
+    return Project(
+        id=project.id,
+        name=project.name,
+        description=project.description,
+        repo_url=project.repo_url,
+        tech_stack=project.tech_stack or [],
+        stars=project.stars,
+        forks=project.forks,
+        open_issues=project.open_issues,
+        submitted_by_username=project.submitted_by_username,
+        is_verified_student=project.submitter.is_verified_student if project.submitter else False,
+        created_at=project.created_at
+    )
 
 @router.post("", response_model=Project)
 async def submit_project(

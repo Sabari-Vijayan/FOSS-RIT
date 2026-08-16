@@ -96,21 +96,41 @@ async def exchange_github_code(code: str, redirect_uri: Optional[str] = None) ->
             "avatar_url": user_data.get("avatar_url")
         }
 
-async def fetch_github_repo_metadata(repo_url: str) -> Dict[str, Any]:
+async def fetch_github_repo_metadata(repo_url: str, is_sync: bool = False) -> Dict[str, Any]:
     """Scrape live repository stars, forks, issues, description, and languages."""
     owner, repo_name = parse_github_url(repo_url)
     api_url = f"https://api.github.com/repos/{owner}/{repo_name}"
 
+    headers = {
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "FOSS-Club-RIT"
+    }
+
+    # If GitHub OAuth app credentials exist, include them for higher API rate limits (5000/hr)
+    auth = None
+    if settings.GITHUB_CLIENT_ID and settings.GITHUB_CLIENT_SECRET:
+        auth = (settings.GITHUB_CLIENT_ID, settings.GITHUB_CLIENT_SECRET)
+
     async with httpx.AsyncClient() as client:
         res = await client.get(
             api_url,
-            headers={
-                "Accept": "application/vnd.github.v3+json",
-                "User-Agent": "FOSS-Club-RIT"
-            },
+            headers=headers,
+            auth=auth,
             timeout=10.0
         )
+        if res.status_code == 403 or res.status_code == 429:
+            print(f"[GitHub API] Rate limit encountered while fetching {owner}/{repo_name}")
+            if is_sync:
+                # Return partial structure so sync does not blow up
+                return {}
+            raise HTTPException(
+                status_code=429,
+                detail="GitHub API rate limit exceeded. Please try again shortly or configure GitHub credentials."
+            )
+
         if res.status_code != 200:
+            if is_sync:
+                return {}
             raise HTTPException(
                 status_code=404,
                 detail=f"GitHub repository '{owner}/{repo_name}' not found or is private."
@@ -118,15 +138,15 @@ async def fetch_github_repo_metadata(repo_url: str) -> Dict[str, Any]:
 
         data = res.json()
 
-        # Reject forks
-        if data.get("fork"):
+        # Reject forks only during new project submissions, not when syncing
+        if not is_sync and data.get("fork"):
             raise HTTPException(
                 status_code=400,
                 detail="This repository is a fork. Please feature original open-source projects created by you or your campus team."
             )
 
-        # Reject archived repositories
-        if data.get("archived"):
+        # Reject archived repositories only during new submission
+        if not is_sync and data.get("archived"):
             raise HTTPException(
                 status_code=400,
                 detail="This repository is archived on GitHub. Please feature active repositories."
@@ -134,7 +154,7 @@ async def fetch_github_repo_metadata(repo_url: str) -> Dict[str, Any]:
 
         # Ensure repository has a meaningful description
         desc_text = data.get("description")
-        if not desc_text or len(desc_text.strip()) < 5:
+        if not is_sync and (not desc_text or len(desc_text.strip()) < 5):
             raise HTTPException(
                 status_code=400,
                 detail="Repository must have a public description on GitHub explaining what the project does."
@@ -155,9 +175,9 @@ async def fetch_github_repo_metadata(repo_url: str) -> Dict[str, Any]:
             "description": data.get("description") or "Open source campus project.",
             "repo_url": data.get("html_url") or repo_url,
             "tech_stack": list(dict.fromkeys(tech_stack)),
-            "stars": data.get("stargazers_count", 0),
-            "forks": data.get("forks_count", 0),
-            "open_issues": data.get("open_issues_count", 0),
+            "stars": int(data.get("stargazers_count", 0)),
+            "forks": int(data.get("forks_count", 0)),
+            "open_issues": int(data.get("open_issues_count", 0)),
             "submitted_by_username": owner
         }
 

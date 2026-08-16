@@ -145,6 +145,7 @@ p {
   color: #0F1710;
   border-color: var(--foss-mint);
   font-weight: 700;
+  transition: all 0.25s ease;
 }
 
 .btn-primary:hover {
@@ -544,12 +545,13 @@ p {
   padding: 6px 16px;
   border-radius: var(--radius-full);
   background-color: var(--foss-mint-subtle);
-  border: 1px solid rgba(8, 183, 79, 0.3);
+  border: 1px solid var(--foss-mint-glow);
   color: var(--foss-mint);
   font-size: 0.88rem;
   font-family: var(--font-mono);
   font-weight: 500;
   margin-bottom: var(--space-lg);
+  transition: all 0.3s ease;
 }
 
 .hero-title {
@@ -693,7 +695,8 @@ p {
   border-radius: var(--radius-full);
   background: var(--foss-mint-subtle);
   color: var(--foss-mint);
-  border: 1px solid rgba(8, 183, 79, 0.3);
+  border: 1px solid var(--foss-mint-glow);
+  transition: all 0.3s ease;
 }
 
 .event-badge-collab {
@@ -817,7 +820,7 @@ p {
 .project-row-card:hover {
   border-color: var(--foss-mint);
   transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(8, 183, 79, 0.12);
+  box-shadow: 0 4px 20px var(--foss-mint-subtle);
 }
 
 .project-row-main {
@@ -859,22 +862,24 @@ p {
   font-family: var(--font-mono);
   color: var(--foss-mint);
   background: var(--foss-mint-subtle);
-  border: 1px solid rgba(8, 183, 79, 0.3);
+  border: 1px solid var(--foss-mint-glow);
   padding: 1px 7px;
   border-radius: var(--radius-full);
+  transition: all 0.3s ease;
 }
 
 .verified-student-badge {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: rgba(8, 183, 79, 0.1);
+  background: var(--foss-mint-subtle);
   color: var(--foss-mint);
-  border: 1px solid rgba(8, 183, 79, 0.25);
+  border: 1px solid var(--foss-mint-glow);
   border-radius: 4px;
   padding: 1px 6px;
   font-size: 0.68rem;
   font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .project-row-actions {
@@ -957,7 +962,7 @@ p {
 
 /* Mascot Banner */
 .mascot-banner {
-  background: linear-gradient(135deg, rgba(8, 183, 79, 0.08) 0%, rgba(43, 127, 255, 0.08) 100%);
+  background: linear-gradient(135deg, var(--vibe-subtle, rgba(8, 183, 79, 0.08)) 0%, var(--surface-raised) 100%);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-xl);
   padding: var(--space-2xl);
@@ -966,6 +971,7 @@ p {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-xl);
+  transition: all 0.35s ease;
 }
 
 .mascot-faces-row {

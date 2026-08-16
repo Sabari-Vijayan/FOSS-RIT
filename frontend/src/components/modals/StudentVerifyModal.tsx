@@ -49,7 +49,7 @@ export const StudentVerifyModal: React.FC<StudentVerifyModalProps> = ({ isOpen, 
             height: '54px',
             borderRadius: '50%',
             background: 'var(--foss-mint-subtle)',
-            border: '1px solid rgba(8, 183, 79, 0.3)',
+            border: '1px solid var(--foss-mint-glow)',
             color: 'var(--foss-mint)',
             display: 'flex',
             alignItems: 'center',
@@ -66,7 +66,7 @@ export const StudentVerifyModal: React.FC<StudentVerifyModalProps> = ({ isOpen, 
 
         {user.is_verified_student ? (
           <div style={{
-            background: 'rgba(8, 183, 79, 0.1)',
+            background: 'var(--foss-mint-subtle)',
             border: '1px solid var(--foss-mint)',
             borderRadius: 'var(--radius-md)',
             padding: 'var(--space-md)',

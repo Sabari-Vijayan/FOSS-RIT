@@ -101,7 +101,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, onS
               alignItems: 'center',
               gap: '8px',
               background: 'var(--foss-mint-subtle)',
-              border: '1px solid rgba(8, 183, 79, 0.25)',
+              border: '1px solid var(--foss-mint-glow)',
               borderRadius: 'var(--radius-md)',
               padding: '8px 12px',
               fontSize: '0.82rem',
