@@ -8,6 +8,7 @@ frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
 frontend/.vite/
+.vercel/
 .pnp
 .pnp.js
 
