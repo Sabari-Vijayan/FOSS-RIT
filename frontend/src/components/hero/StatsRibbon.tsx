@@ -6,7 +6,7 @@ export const StatsRibbon: React.FC = () => {
   const [stats, setStats] = useState<ClubStats>({
     active_members: 40,
     projects_built: 3,
-    workshops_hosted: 0,
+    workshops_hosted: 20,
     open_pull_requests: 4,
     lines_of_foss_code: 'Genesis'
   });
@@ -18,16 +18,16 @@ export const StatsRibbon: React.FC = () => {
   return (
     <div className="stats-ribbon">
       <div className="stat-item">
-        <div className="stat-number">{stats.active_members}<span>+</span></div>
-        <div className="stat-label">Founding Members (RIT)</div>
+        <div className="stat-number">{stats.projects_built}<span>+</span></div>
+        <div className="stat-label">Campus FOSS Projects</div>
       </div>
       <div className="stat-item">
-        <div className="stat-number">Tinker<span>Hub</span></div>
-        <div className="stat-label">Community Partner</div>
+        <div className="stat-number">{stats.workshops_hosted || 20}<span>+</span></div>
+        <div className="stat-label">TinkerHub RIT Sessions</div>
       </div>
       <div className="stat-item">
-        <div className="stat-number">3<span>+</span></div>
-        <div className="stat-label">Upcoming Bootcamps</div>
+        <div className="stat-number">2160</div>
+        <div className="stat-label">TinkerHub Chapter ID</div>
       </div>
       <div className="stat-item">
         <div className="stat-number">100<span>%</span></div>

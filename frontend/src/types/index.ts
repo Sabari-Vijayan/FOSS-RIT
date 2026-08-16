@@ -71,6 +71,7 @@ export interface Project {
   forks: number;
   open_issues: number;
   submitted_by_username?: string;
+  is_verified_student?: boolean;
   last_synced_at?: string;
 }
 

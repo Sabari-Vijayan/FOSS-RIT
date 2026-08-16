@@ -117,6 +117,29 @@ async def fetch_github_repo_metadata(repo_url: str) -> Dict[str, Any]:
             )
 
         data = res.json()
+
+        # Reject forks
+        if data.get("fork"):
+            raise HTTPException(
+                status_code=400,
+                detail="This repository is a fork. Please feature original open-source projects created by you or your campus team."
+            )
+
+        # Reject archived repositories
+        if data.get("archived"):
+            raise HTTPException(
+                status_code=400,
+                detail="This repository is archived on GitHub. Please feature active repositories."
+            )
+
+        # Ensure repository has a meaningful description
+        desc_text = data.get("description")
+        if not desc_text or len(desc_text.strip()) < 5:
+            raise HTTPException(
+                status_code=400,
+                detail="Repository must have a public description on GitHub explaining what the project does."
+            )
+
         tech_stack = []
         if data.get("language"):
             tech_stack.append(data["language"])

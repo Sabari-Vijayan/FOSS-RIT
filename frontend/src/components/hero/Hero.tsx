@@ -1,12 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { StatsRibbon } from './StatsRibbon';
-import { Sparkles, Compass, ArrowRight } from 'lucide-react';
+import { Compass, Layers, ArrowRight } from 'lucide-react';
 
-interface HeroProps {
-  onOpenJoin: () => void;
-}
-
-export const Hero: React.FC<HeroProps> = ({ onOpenJoin }) => {
+export const Hero: React.FC = () => {
   return (
     <section className="hero-section">
       <div className="container">
@@ -27,16 +24,16 @@ export const Hero: React.FC<HeroProps> = ({ onOpenJoin }) => {
           </p>
 
           <div className="hero-cta-group">
-            <button className="btn btn-primary" onClick={onOpenJoin}>
-              <Sparkles size={18} />
-              Join Founding Cohort
-            </button>
+            <Link to="/projects" className="btn btn-primary">
+              <Layers size={18} />
+              Explore Campus Projects
+            </Link>
             <a href="#events" className="btn btn-secondary">
               <Compass size={18} />
-              Explore Bootcamps
+              View Workshops
             </a>
-            <a href="#projects" className="btn btn-ghost">
-              Browse Projects <ArrowRight size={16} />
+            <a href="#manifesto" className="btn btn-ghost">
+              Manifesto <ArrowRight size={16} />
             </a>
           </div>
         </div>

@@ -1,13 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ExternalLink, Terminal } from 'lucide-react';
+import { ExternalLink, Terminal, Layers } from 'lucide-react';
 import { GithubIcon } from '../ui/Icons';
 
-interface FooterProps {
-  onOpenJoin: () => void;
-}
-
-export const Footer: React.FC<FooterProps> = ({ onOpenJoin }) => {
+export const Footer: React.FC = () => {
   return (
     <footer className="footer">
       <div className="container">
@@ -57,8 +53,8 @@ export const Footer: React.FC<FooterProps> = ({ onOpenJoin }) => {
                 </a>
               </li>
               <li>
-                <a href="https://tinkerhub.org" target="_blank" rel="noopener noreferrer" className="nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  <ExternalLink size={14} /> TinkerHub Community ↗
+                <a href="https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor" target="_blank" rel="noopener noreferrer" className="nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <ExternalLink size={14} /> TinkerHub RIT Chapter ↗
                 </a>
               </li>
               <li>
@@ -72,11 +68,12 @@ export const Footer: React.FC<FooterProps> = ({ onOpenJoin }) => {
           <div>
             <h4 style={{ fontSize: '0.95rem', marginBottom: 'var(--space-md)' }}>Ready to Build?</h4>
             <p style={{ fontSize: '0.88rem', marginBottom: 'var(--space-md)' }}>
-              Brand new chapter. Zero experience needed. Open to B.Tech (all branches), M.Tech, and MCA students at RIT!
+              Built an open-source tool at RIT? Feature your repository on the campus radar.
             </p>
-            <button className="btn btn-primary btn-sm" onClick={onOpenJoin}>
-              Join Founding Cohort
-            </button>
+            <Link to="/projects" className="btn btn-primary btn-sm">
+              <Layers size={14} />
+              Feature a Project
+            </Link>
           </div>
         </div>
 

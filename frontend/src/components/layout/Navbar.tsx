@@ -5,7 +5,6 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   Sun, 
   Moon, 
-  Sparkles, 
   LogOut, 
   CheckCircle2, 
   ShieldAlert, 
@@ -19,14 +18,13 @@ import {
 } from 'lucide-react';
 import { GitHubIcon } from '../ui/GitHubIcon';
 import { StudentVerifyModal } from '../modals/StudentVerifyModal';
+import { useVibe, VIBES, VibeId } from '../../context/VibeContext';
+import { MascotIcon } from '../ui/MascotIcon';
 
-interface NavbarProps {
-  onOpenJoin: () => void;
-}
-
-export const Navbar: React.FC<NavbarProps> = ({ onOpenJoin }) => {
+export const Navbar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout, redirectToGitHub } = useAuth();
+  const { activeVibe, setVibe } = useVibe();
   const location = useLocation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -159,6 +157,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenJoin }) => {
                   <span className="user-nav-name">
                     @{user.username}
                   </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center' }} title={`Builder Persona: ${activeVibe.name}`}>
+                    <MascotIcon vibe={activeVibe.id} size={15} color={activeVibe.color} />
+                  </span>
                   {user.is_verified_student && (
                     <span title="Verified RIT Student" style={{ display: 'inline-flex', alignItems: 'center' }}>
                       <CheckCircle2 size={13} color="var(--foss-mint)" />
@@ -177,6 +178,42 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenJoin }) => {
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                         {user.email || `@${user.username}`}
+                      </div>
+                    </div>
+
+                    {/* Quick Vibe Persona Switcher */}
+                    <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--surface-border)' }}>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '6px', fontWeight: 600 }}>
+                        BUILDER PERSONA
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+                        {(Object.keys(VIBES) as VibeId[]).map(id => {
+                          const v = VIBES[id];
+                          const isCur = activeVibe.id === id;
+                          return (
+                            <button
+                              key={id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setVibe(id);
+                              }}
+                              title={`${v.name} (${v.role})`}
+                              style={{
+                                background: isCur ? `${v.color}22` : 'var(--surface-raised)',
+                                borderColor: isCur ? v.color : 'transparent',
+                                border: '1px solid',
+                                borderRadius: 'var(--radius-sm)',
+                                padding: '4px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              <MascotIcon vibe={id} size={20} color={v.color} />
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -216,12 +253,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenJoin }) => {
                 <span className="signin-text">Sign In</span>
               </button>
             )}
-
-            {/* Primary CTA */}
-            <button className="btn btn-primary btn-sm nav-join-btn" onClick={onOpenJoin}>
-              <Sparkles size={14} />
-              <span>Join</span>
-            </button>
 
             {/* Mobile Hamburger Toggle */}
             <button 
@@ -274,20 +305,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenJoin }) => {
               >
                 <ShieldAlert size={16} /> Manifesto
               </a>
-            </div>
-
-            <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--surface-border)' }}>
-              <button 
-                className="btn btn-primary" 
-                style={{ width: '100%', justifyContent: 'center' }}
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenJoin();
-                }}
-              >
-                <Sparkles size={16} />
-                Join the Founding Cohort
-              </button>
             </div>
           </div>
         )}

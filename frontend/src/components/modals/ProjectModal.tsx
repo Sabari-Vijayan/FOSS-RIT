@@ -135,7 +135,7 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({ isOpen, onClose, onS
               color: 'var(--text-secondary)',
               marginBottom: 'var(--space-md)'
             }}>
-              💡 <strong>Auto-Scraped:</strong> Name, description, live stars, forks, issues, and tech stack tags will be automatically synchronized from GitHub.
+              💡 <strong>Auto-Scraped:</strong> Max 3 featured projects per student. Live stars, forks, and tags will be automatically synchronized from your GitHub repository.
             </div>
 
             <button

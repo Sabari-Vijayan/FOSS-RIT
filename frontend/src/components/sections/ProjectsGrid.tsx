@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Project } from '../../types';
-import { Star, GitFork, AlertCircle, Plus, ExternalLink, ArrowRight, Search, SlidersHorizontal } from 'lucide-react';
+import { Star, GitFork, AlertCircle, Plus, ExternalLink, ArrowRight, Search, SlidersHorizontal, CheckCircle2 } from 'lucide-react';
 import { GithubIcon } from '../ui/Icons';
 
 interface ProjectsGridProps {
@@ -144,73 +144,95 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
             <p>No repositories found matching your filter criteria.</p>
           </div>
         ) : (
-          <div className="projects-grid">
+          <div className="projects-list">
             {displayedProjects.map(proj => (
-              <div key={proj.id} className="project-card interactive-hover-card">
-                <div>
-                  <div className="project-header">
-                    <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
-                      <div className="project-title">
-                        <GithubIcon size={18} color="var(--foss-mint)" style={{ flexShrink: 0, marginTop: '3px' }} />
-                        <span style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{proj.name}</span>
-                      </div>
-                      {proj.submitted_by_username && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
-                          by @{proj.submitted_by_username}
-                        </div>
+              <div key={proj.id} className="project-row-card interactive-hover-card">
+                <div className="project-row-main">
+                  {/* Top Line: Name, Badges, Stats & Repo Button */}
+                  <div className="project-row-header">
+                    <div className="project-row-title-group">
+                      <GithubIcon size={17} color="var(--foss-mint)" style={{ flexShrink: 0 }} />
+                      <a 
+                        href={proj.repo_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="project-row-title"
+                      >
+                        {proj.name}
+                      </a>
+                      <span className="tag-badge-pill">Open Source</span>
+                      {proj.is_verified_student && (
+                        <span 
+                          className="verified-student-badge"
+                          title="Verified Student at Rajiv Gandhi Institute of Technology (RIT Kottayam)"
+                        >
+                          <CheckCircle2 size={11} /> RIT Verified
+                        </span>
                       )}
                     </div>
-                    <span className="tag-badge" style={{ color: 'var(--foss-mint)', borderColor: 'rgba(8, 183, 79, 0.3)', flexShrink: 0 }}>
-                      Open Source
-                    </span>
+
+                    <div className="project-row-actions">
+                      <div className="project-stats-inline">
+                        <span className="project-stat" title="GitHub Stars">
+                          <Star size={13} color="var(--byte-yellow)" />
+                          <strong>{proj.stars.toLocaleString()}</strong>
+                        </span>
+                        <span className="project-stat" title="Forks">
+                          <GitFork size={13} color="var(--pixel-blue)" />
+                          <span>{proj.forks.toLocaleString()}</span>
+                        </span>
+                        <span className="project-stat" title="Open Issues">
+                          <AlertCircle size={13} color="var(--flame-red)" />
+                          <span>{proj.open_issues}</span>
+                        </span>
+                      </div>
+
+                      <a 
+                        href={proj.repo_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="btn btn-secondary btn-sm project-view-btn"
+                        title="View on GitHub"
+                      >
+                        <span>Repo</span>
+                        <ExternalLink size={12} />
+                      </a>
+                    </div>
                   </div>
 
-                  <p style={{ fontSize: '0.9rem', marginBottom: 'var(--space-md)' }}>
+                  {/* Middle Line: Concise Description */}
+                  <p className="project-row-desc">
                     {proj.description}
                   </p>
 
-                  <div className="tags-row">
-                    {proj.tech_stack.map(tech => (
-                      <span key={tech} className="tag-badge">{tech}</span>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    paddingTop: 'var(--space-md)',
-                    borderTop: '1px solid var(--surface-border)',
-                    marginBottom: 'var(--space-md)'
-                  }}>
-                    <div className="project-stats">
-                      <div className="project-stat" title="GitHub Stars">
-                        <Star size={13} color="var(--byte-yellow)" />
-                        <span>{proj.stars}</span>
-                      </div>
-                      <div className="project-stat" title="Forks">
-                        <GitFork size={13} color="var(--pixel-blue)" />
-                        <span>{proj.forks}</span>
-                      </div>
-                      <div className="project-stat" title="Open Issues">
-                        <AlertCircle size={13} color="var(--flame-red)" />
-                        <span>{proj.open_issues} issues</span>
-                      </div>
+                  {/* Bottom Line: Tags & Author */}
+                  <div className="project-row-footer">
+                    <div className="tags-row-inline">
+                      {proj.tech_stack.slice(0, 6).map(tech => (
+                        <span key={tech} className="tag-badge">{tech}</span>
+                      ))}
                     </div>
-                  </div>
 
-                  <a 
-                    href={proj.repo_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="btn btn-secondary btn-sm"
-                    style={{ width: '100%' }}
-                  >
-                    <GithubIcon size={14} />
-                    View on GitHub <ExternalLink size={12} />
-                  </a>
+                    {proj.submitted_by_username && (
+                      <a
+                        href={`https://github.com/${proj.submitted_by_username}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="project-author-link"
+                        title={`View @${proj.submitted_by_username} on GitHub`}
+                      >
+                        <img
+                          src={`https://github.com/${proj.submitted_by_username}.png?size=48`}
+                          alt={`@${proj.submitted_by_username}`}
+                          className="project-author-pfp"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                        <span>by @{proj.submitted_by_username}</span>
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

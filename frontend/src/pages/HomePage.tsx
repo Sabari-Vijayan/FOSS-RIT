@@ -8,21 +8,19 @@ import { Manifesto } from '../components/sections/Manifesto';
 import { Event } from '../types';
 
 interface HomePageProps {
-  onOpenJoin: () => void;
   onOpenRsvp: (event: Event) => void;
   onOpenSubmitProject: () => void;
   refreshKey: number;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
-  onOpenJoin,
   onOpenRsvp,
   onOpenSubmitProject,
   refreshKey
 }) => {
   return (
     <div>
-      <Hero onOpenJoin={onOpenJoin} />
+      <Hero />
       <Pillars />
       
       {/* Featured Top 3 Events */}
