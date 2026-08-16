@@ -4,6 +4,8 @@ The official web platform and community portal for the Free and Open Source Soft
 
 **Motto:** *Learn. Share. Contribute.*
 
+![FOSS Club RIT Website Preview](docs/assets/website-preview.png)
+
 ---
 
 ## Overview
@@ -157,7 +159,11 @@ foss-club-website/
 
 ---
 
-## API Reference
+## API Reference & Interactive Documentation
+
+The backend features automated OpenAPI 3.1 schema generation and interactive Swagger documentation accessible locally at `http://localhost:8000/docs` (or `/redoc`) and in production at `/docs`.
+
+![FastAPI Interactive Documentation Preview](docs/assets/fastapi-docs-preview.png)
 
 ### Authentication (`/api/auth`)
 | Method | Endpoint | Auth | Description |
@@ -178,8 +184,10 @@ foss-club-website/
 ### Projects Radar (`/api/projects`)
 | Method | Endpoint | Auth | Description |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/projects` | None | Lists featured campus projects with author verification status and tech filtering. |
+| `GET` | `/api/projects` | None | Lists featured campus projects with author verification status, tech filtering, and optional live sync. |
 | `POST` | `/api/projects` | Bearer | Auto-scrapes and features a repository (enforces 3-project cap and author check). |
+| `POST` | `/api/projects/sync` | None | Synchronizes live stars, forks, and issues for all featured repositories with GitHub API. |
+| `POST` | `/api/projects/{id}/sync` | None | Refreshes GitHub telemetry for an individual repository on demand. |
 | `DELETE` | `/api/projects/{id}` | Bearer | Deletes a project (restricted to the original submitter or admin). |
 
 ### Community & Stats (`/api/members`)
