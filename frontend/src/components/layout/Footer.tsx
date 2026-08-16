@@ -58,7 +58,7 @@ export const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <a href="http://127.0.0.1:8000/docs" target="_blank" rel="noopener noreferrer" className="nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <a href="/docs" target="_blank" rel="noopener noreferrer" className="nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   <Terminal size={14} /> FastAPI Swagger Docs <ExternalLink size={12} />
                 </a>
               </li>
