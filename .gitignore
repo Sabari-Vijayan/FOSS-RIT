@@ -58,6 +58,10 @@ wheels/
 backend/.env
 backend/.env.local
 backend/.env.*
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
 
 # OS & Editor Files
 .DS_Store

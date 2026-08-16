@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License" />
 </p>
 
-> **"Build in the open. Learn by Tinkering. Ship together."**
+> **"Learn. Share. Contribute."**
 
 Welcome to the official web platform repository for **FOSS Club RIT Kottayam**. This platform powers our student onboarding, workshop & bootcamp registrations, campus project showcase, and open-source learning circles in partnership with **TinkerHub**.
 

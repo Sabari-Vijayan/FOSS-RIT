@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Event } from '../../types';
-import { Calendar, MapPin, RefreshCw, Ticket, ArrowRight, Search } from 'lucide-react';
+import { Calendar, MapPin, RefreshCw, Ticket, ArrowRight, Search, Zap, ExternalLink } from 'lucide-react';
 
 interface EventsGridProps {
   onOpenRsvp: (event: Event) => void;
@@ -23,7 +23,10 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
 }) => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState<'all' | 'workshop' | 'talk' | 'hackathon'>('all');
 
   const loadEvents = async () => {
     setLoading(true);
@@ -37,17 +40,52 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
     }
   };
 
+  const handleSyncTinkerHub = async () => {
+    setSyncing(true);
+    setSyncStatus('Syncing live campus schedule with TinkerHub RIT...');
+    try {
+      const res = await api.syncTinkerHub();
+      if (res.events && res.events.length > 0) {
+        setEvents(res.events);
+      } else {
+        await loadEvents();
+      }
+      setSyncStatus(`Updated! Synced ${res.synced_total || 0} sessions live from TinkerHub RIT.`);
+      setTimeout(() => setSyncStatus(null), 4000);
+    } catch (err: any) {
+      setSyncStatus(err.message || 'Sync failed');
+      setTimeout(() => setSyncStatus(null), 4000);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   useEffect(() => {
     loadEvents();
   }, []);
 
   const filteredEvents = events.filter(e => {
+    const typeLower = (e.event_type || '').toLowerCase();
+    
+    // Category format filter
+    if (filterCategory === 'workshop' && !typeLower.includes('workshop') && !typeLower.includes('bootcamp') && !typeLower.includes('learning')) {
+      return false;
+    }
+    if (filterCategory === 'talk' && !typeLower.includes('talk') && !typeLower.includes('meetup') && !typeLower.includes('meeting')) {
+      return false;
+    }
+    if (filterCategory === 'hackathon' && !typeLower.includes('hackathon') && !typeLower.includes('challenge')) {
+      return false;
+    }
+
+    // Search query
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
       e.title.toLowerCase().includes(q) ||
       e.description.toLowerCase().includes(q) ||
-      e.location.toLowerCase().includes(q)
+      e.location.toLowerCase().includes(q) ||
+      typeLower.includes(q)
     );
   });
 
@@ -62,9 +100,9 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
             <h2>{title}</h2>
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--space-md)', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
             {showSearch && (
-              <div style={{ position: 'relative', minWidth: '240px' }}>
+              <div style={{ position: 'relative', minWidth: '220px' }}>
                 <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
                   type="text"
@@ -77,22 +115,87 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
               </div>
             )}
 
-            {showViewAll && (
-              <Link to="/events" className="btn btn-ghost btn-sm">
-                View all <ArrowRight size={14} />
-              </Link>
-            )}
+            {/* Sync TinkerHub Button */}
+            <button 
+              className="btn btn-secondary btn-sm" 
+              onClick={handleSyncTinkerHub}
+              disabled={syncing || loading}
+              title="Scrape and sync latest events live from TinkerHub RIT campus radar"
+              style={{ borderColor: 'rgba(253, 152, 0, 0.4)', color: '#ff9d00' }}
+            >
+              <Zap size={14} className={syncing ? 'spin' : ''} />
+              {syncing ? 'Syncing...' : 'Sync TinkerHub'}
+            </button>
 
+            {/* Refresh Button */}
             <button 
               className="btn btn-ghost btn-sm" 
               onClick={loadEvents}
-              disabled={loading}
+              disabled={loading || syncing}
               title="Refresh schedule"
             >
               <RefreshCw size={14} className={loading ? 'spin' : ''} />
               Refresh
             </button>
+
+            {showViewAll && (
+              <Link to="/events" className="btn btn-ghost btn-sm">
+                View all <ArrowRight size={14} />
+              </Link>
+            )}
           </div>
+        </div>
+
+        {/* Sync Status Banner */}
+        {syncStatus && (
+          <div style={{
+            background: 'rgba(253, 152, 0, 0.1)',
+            border: '1px solid rgba(253, 152, 0, 0.3)',
+            borderRadius: 'var(--radius-md)',
+            padding: '8px 16px',
+            fontSize: '0.85rem',
+            color: '#ffaa2b',
+            marginBottom: 'var(--space-lg)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <Zap size={15} />
+            <span>{syncStatus}</span>
+          </div>
+        )}
+
+        {/* Category Filters by Session Format */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: 'var(--space-xl)', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginRight: '4px' }}>Filter:</span>
+          <button
+            className={`btn btn-sm ${filterCategory === 'all' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setFilterCategory('all')}
+            style={{ fontSize: '0.8rem' }}
+          >
+            All Sessions ({events.length})
+          </button>
+          <button
+            className={`btn btn-sm ${filterCategory === 'workshop' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setFilterCategory('workshop')}
+            style={{ fontSize: '0.8rem' }}
+          >
+            Workshops & Bootcamps
+          </button>
+          <button
+            className={`btn btn-sm ${filterCategory === 'talk' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setFilterCategory('talk')}
+            style={{ fontSize: '0.8rem' }}
+          >
+            Talks & Meetups
+          </button>
+          <button
+            className={`btn btn-sm ${filterCategory === 'hackathon' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setFilterCategory('hackathon')}
+            style={{ fontSize: '0.8rem' }}
+          >
+            Hackathons
+          </button>
         </div>
 
         {displayedEvents.length === 0 ? (
@@ -103,19 +206,46 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
             padding: 'var(--space-2xl)',
             textAlign: 'center'
           }}>
-            <p>No workshops found matching "{searchQuery}".</p>
+            <p>No sessions found matching current criteria.</p>
           </div>
         ) : (
           <div className="events-grid">
             {displayedEvents.map(event => {
-              const isFull = event.registered_count >= event.capacity;
+              const isFull = event.capacity > 0 && event.registered_count >= event.capacity;
+              const tinkerHubLink = event.event_url || "https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor";
+
               return (
                 <div key={event.id} className="event-card interactive-hover-card">
                   <div className="event-top">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span className="event-badge">Upcoming</span>
-                      <span style={{ fontSize: '0.78rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                        {event.registered_count}/{event.capacity} Filled
+                    {/* Banner Image if available */}
+                    {event.banner_url && (
+                      <img 
+                        src={event.banner_url} 
+                        alt={event.title}
+                        className="event-card-banner"
+                        loading="lazy"
+                      />
+                    )}
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '6px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        {event.is_collab !== false ? (
+                          <span className="event-badge-collab" title="In collaboration with TinkerHub RIT">
+                            <Zap size={11} /> TinkerHub Collab
+                          </span>
+                        ) : (
+                          <span className="event-badge">FOSS Exclusive</span>
+                        )}
+
+                        {event.event_type && (
+                          <span className="event-badge-type">
+                            {event.event_type}
+                          </span>
+                        )}
+                      </div>
+
+                      <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                        {event.capacity > 0 ? `${event.capacity} Capacity` : 'Open Entry'}
                       </span>
                     </div>
 
@@ -127,24 +257,39 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
                     <div className="event-meta-list">
                       <div className="event-meta-item">
                         <Calendar size={15} color="var(--foss-mint)" />
-                        <span>{event.date_time}</span>
+                        <span>{event.date_time || event.date || 'Upcoming Session'}</span>
                       </div>
                       <div className="event-meta-item">
                         <MapPin size={15} color="var(--pixel-blue)" />
-                        <span>{event.location}</span>
+                        <span>{event.location || event.venue || 'RIT Kottayam (Velloor)'}</span>
                       </div>
                     </div>
                   </div>
 
-                  <button 
-                    className={`btn ${isFull ? 'btn-secondary' : 'btn-primary'}`} 
-                    style={{ width: '100%' }}
-                    onClick={() => !isFull && onOpenRsvp(event)}
-                    disabled={isFull}
-                  >
-                    <Ticket size={16} />
-                    {isFull ? 'Event Full' : 'Reserve Spot / RSVP'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {event.is_collab !== false ? (
+                      <a 
+                        href={tinkerHubLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-primary"
+                        style={{ width: '100%', justifyContent: 'center' }}
+                      >
+                        <Zap size={15} />
+                        Register on TinkerHub <ExternalLink size={13} />
+                      </a>
+                    ) : (
+                      <button 
+                        className={`btn ${isFull ? 'btn-secondary' : 'btn-primary'}`} 
+                        style={{ width: '100%', justifyContent: 'center' }}
+                        onClick={() => !isFull && onOpenRsvp(event)}
+                        disabled={isFull}
+                      >
+                        <Ticket size={16} />
+                        {isFull ? 'Event Full' : 'Reserve Spot / RSVP'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}

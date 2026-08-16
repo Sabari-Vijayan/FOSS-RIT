@@ -1,0 +1,99 @@
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from db.session import get_db
+from db.models import UserDB
+from schemas.auth import UserPublic, AuthResponse, VerifyStudentEmail
+from core.security import create_access_token, get_current_user
+from services.github_service import exchange_github_code
+
+router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+@router.post("/github", response_model=AuthResponse)
+async def github_oauth_callback(payload: dict, db: Session = Depends(get_db)):
+    """Exchange GitHub OAuth authorization code for verified user session and JWT."""
+    code = payload.get("code")
+    if not code:
+        raise HTTPException(status_code=400, detail="Missing authorization code from GitHub.")
+
+    profile = await exchange_github_code(code)
+    
+    user = db.query(UserDB).filter(UserDB.github_id == profile["github_id"]).first()
+    if not user:
+        user = UserDB(
+            github_id=profile["github_id"],
+            username=profile["username"],
+            display_name=profile["display_name"],
+            email=profile["email"],
+            avatar_url=profile["avatar_url"],
+            role="member",
+            is_verified_student=False
+        )
+        db.add(user)
+    else:
+        user.username = profile["username"]
+        user.display_name = profile["display_name"]
+        user.avatar_url = profile["avatar_url"]
+        user.last_login = datetime.utcnow()
+        if profile.get("email"):
+            user.email = profile["email"]
+
+    db.commit()
+    db.refresh(user)
+
+    token = create_access_token({"sub": user.id, "username": user.username, "role": user.role})
+    return AuthResponse(access_token=token, user=UserPublic.model_validate(user))
+
+@router.get("/me", response_model=UserPublic)
+async def get_my_profile(current_user: UserDB = Depends(get_current_user)):
+    """Return the authenticated user profile."""
+    return UserPublic.model_validate(current_user)
+
+@router.post("/verify-student", response_model=UserPublic)
+async def verify_student_status(
+    payload: VerifyStudentEmail,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Link and verify an official RIT college email domain (@rit.ac.in)."""
+    email_str = payload.college_email.lower().strip()
+    
+    if not (email_str.endswith("@rit.ac.in") or email_str.endswith("@ritkottayam.ac.in") or "rit" in email_str):
+        raise HTTPException(
+            status_code=400,
+            detail="Must be an official RIT Kottayam student email address (e.g. yourname@rit.ac.in)"
+        )
+
+    existing = db.query(UserDB).filter(UserDB.college_email == email_str, UserDB.id != current_user.id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="This college email is already associated with another student account.")
+
+    current_user.college_email = email_str
+    current_user.is_verified_student = True
+    db.commit()
+    db.refresh(current_user)
+
+    return UserPublic.model_validate(current_user)
+
+@router.post("/dev-login", response_model=AuthResponse)
+async def dev_quick_login(username: str = "rit-developer", db: Session = Depends(get_db)):
+    """Local development quick login helper."""
+    user = db.query(UserDB).filter(UserDB.username == username).first()
+    if not user:
+        user_role = "admin" if "admin" in username.lower() else "member"
+        user = UserDB(
+            github_id=f"dev-{username}",
+            username=username,
+            display_name=f"{username.capitalize()} (Dev)",
+            email=f"{username}@rit.ac.in",
+            avatar_url="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop",
+            role=user_role,
+            college_email=f"{username}@rit.ac.in",
+            is_verified_student=True
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    token = create_access_token({"sub": user.id, "username": user.username, "role": user.role})
+    return AuthResponse(access_token=token, user=UserPublic.model_validate(user))

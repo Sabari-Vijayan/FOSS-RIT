@@ -1,6 +1,14 @@
-import { Event, EventRSVP, Project, ProjectCreate, Member, MemberCreate, ClubStats } from '../types';
+import { Event, EventRSVP, Project, ProjectCreate, Member, MemberCreate, ClubStats, AuthResponse, User } from '../types';
 
 const API_BASE = '/api';
+
+function getAuthHeaders(): HeadersInit {
+  const token = localStorage.getItem('foss_auth_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+}
 
 const FALLBACK_EVENTS: Event[] = [
   {
@@ -11,27 +19,40 @@ const FALLBACK_EVENTS: Event[] = [
     location: 'MCA Seminar Hall, RIT Kottayam',
     capacity: 80,
     registered_count: 38,
-    is_open: true
+    is_open: true,
+    is_collab: true,
+    source: 'tinkerhub',
+    event_type: 'Workshop',
+    event_url: 'https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor'
   },
   {
-    id: 'linux-cli',
-    title: 'Linux & Terminal Essentials for Engineers',
-    description: 'Demystifying shell scripting, SSH, package managers, and terminal productivity tools for all engineering branches.',
-    date_time: 'Wednesday, Sep 02, 2026 • 4:30 PM - 6:30 PM',
-    location: 'CSE Systems Lab, RIT Kottayam',
-    capacity: 50,
-    registered_count: 24,
-    is_open: true
+    id: 'meet-the-maker',
+    title: 'Meet the Maker: From Beginner to Open Source Hacker',
+    description: 'Interactive talk session on building in public, campus maker culture, and shipping FOSS projects.',
+    date_time: 'Thursday, Sep 03, 2026 • 2:30 PM',
+    location: 'Online (Google Meet)',
+    capacity: 80,
+    registered_count: 0,
+    is_open: true,
+    is_collab: true,
+    source: 'tinkerhub',
+    event_type: 'Talk Session',
+    meet_url: 'https://meet.google.com/mrj-csgy-mez',
+    event_url: 'https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor'
   },
   {
     id: 'tinkerhack-26',
     title: "TinkerHack '26: 24hr Campus FOSS Hackathon",
-    description: 'Our inaugural 24-hour hackathon co-hosted with TinkerHub. Build open-source software solutions for campus and public good.',
+    description: 'Our annual 24-hour hackathon co-hosted with TinkerHub. Build open-source software solutions for campus and public good.',
     date_time: 'Sep 25 - Sep 26, 2026 • 24 Hours',
     location: 'Central Computing Facility, RIT Kottayam',
     capacity: 100,
     registered_count: 52,
-    is_open: true
+    is_open: true,
+    is_collab: true,
+    source: 'tinkerhub',
+    event_type: 'Hackathon',
+    event_url: 'https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor'
   }
 ];
 
@@ -44,7 +65,8 @@ const FALLBACK_PROJECTS: Project[] = [
     tech_stack: ['React', 'TypeScript', 'FastAPI', 'Python'],
     stars: 28,
     forks: 8,
-    open_issues: 4
+    open_issues: 4,
+    submitted_by_username: 'foss-rit-core'
   },
   {
     id: 'ktu-calculator',
@@ -54,7 +76,8 @@ const FALLBACK_PROJECTS: Project[] = [
     tech_stack: ['TypeScript', 'React', 'Tailwind'],
     stars: 42,
     forks: 14,
-    open_issues: 3
+    open_issues: 3,
+    submitted_by_username: 'foss-rit-core'
   },
   {
     id: 'tinker-mesh',
@@ -64,19 +87,78 @@ const FALLBACK_PROJECTS: Project[] = [
     tech_stack: ['Go', 'WebSockets', 'SQLite'],
     stars: 19,
     forks: 5,
-    open_issues: 5
+    open_issues: 5,
+    submitted_by_username: 'foss-rit-core'
   }
 ];
 
 const FALLBACK_STATS: ClubStats = {
-  active_members: 40,
+  active_members: 42,
   projects_built: 3,
-  workshops_hosted: 0,
-  open_pull_requests: 4,
+  workshops_hosted: 20,
+  open_pull_requests: 12,
   lines_of_foss_code: 'Genesis'
 };
 
 export const api = {
+  // --- Auth APIs ---
+  async getAuthConfig(): Promise<{ github_client_id: string; is_oauth_configured: boolean }> {
+    try {
+      const res = await fetch(`${API_BASE}/auth/config`);
+      if (!res.ok) throw new Error();
+      return await res.json();
+    } catch {
+      return { github_client_id: '', is_oauth_configured: false };
+    }
+  },
+
+  async loginWithGitHub(code: string): Promise<AuthResponse> {
+    const res = await fetch(`${API_BASE}/auth/github`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'GitHub authentication failed' }));
+      throw new Error(err.detail || 'GitHub authentication failed');
+    }
+    return await res.json();
+  },
+
+  async devLogin(username: string = 'rit-developer'): Promise<AuthResponse> {
+    const res = await fetch(`${API_BASE}/auth/dev-login?username=${encodeURIComponent(username)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Developer login failed' }));
+      throw new Error(err.detail || 'Developer login failed');
+    }
+    return await res.json();
+  },
+
+  async getMe(): Promise<User> {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) throw new Error('Unauthenticated');
+    return await res.json();
+  },
+
+  async verifyStudent(collegeEmail: string): Promise<User> {
+    const res = await fetch(`${API_BASE}/auth/verify-student`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ college_email: collegeEmail })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to verify college email' }));
+      throw new Error(err.detail || 'Failed to verify college email');
+    }
+    return await res.json();
+  },
+
+  // --- Events APIs ---
   async getEvents(): Promise<Event[]> {
     try {
       const res = await fetch(`${API_BASE}/events`);
@@ -85,6 +167,18 @@ export const api = {
     } catch {
       return FALLBACK_EVENTS;
     }
+  },
+
+  async syncTinkerHub(): Promise<{ success: boolean; message: string; synced_total: number; events: Event[] }> {
+    const res = await fetch(`${API_BASE}/events/sync-tinkerhub`, {
+      method: 'POST',
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to sync with TinkerHub' }));
+      throw new Error(err.detail || 'Failed to sync with TinkerHub');
+    }
+    return await res.json();
   },
 
   async rsvpEvent(eventId: string, rsvpData: EventRSVP): Promise<{ success: boolean; message: string }> {
@@ -100,6 +194,7 @@ export const api = {
     return await res.json();
   },
 
+  // --- Projects APIs ---
   async getProjects(tech?: string): Promise<Project[]> {
     try {
       const url = tech && tech !== 'all' ? `${API_BASE}/projects?tech=${encodeURIComponent(tech)}` : `${API_BASE}/projects`;
@@ -116,7 +211,7 @@ export const api = {
   async submitProject(projectData: ProjectCreate): Promise<Project> {
     const res = await fetch(`${API_BASE}/projects`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(projectData)
     });
     if (!res.ok) {
@@ -124,6 +219,29 @@ export const api = {
       throw new Error(err.detail || 'Failed to submit project');
     }
     return await res.json();
+  },
+
+  async deleteProject(projectId: string): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${API_BASE}/projects/${projectId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to delete project' }));
+      throw new Error(err.detail || 'Failed to delete project');
+    }
+    return await res.json();
+  },
+
+  // --- Members & Stats APIs ---
+  async getMembers(): Promise<Member[]> {
+    try {
+      const res = await fetch(`${API_BASE}/members`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch {
+      return [];
+    }
   },
 
   async getStats(): Promise<ClubStats> {
@@ -139,7 +257,7 @@ export const api = {
   async joinClub(memberData: MemberCreate): Promise<Member> {
     const res = await fetch(`${API_BASE}/members/join`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify(memberData)
     });
     if (!res.ok) {

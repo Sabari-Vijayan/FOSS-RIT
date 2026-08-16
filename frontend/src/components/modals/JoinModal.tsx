@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { MemberCreate } from '../../types';
-import { X, Sparkles } from 'lucide-react';
+import { X, Sparkles, CheckCircle2 } from 'lucide-react';
 
 interface JoinModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface JoinModalProps {
 }
 
 export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
+  const { user } = useAuth();
   const { showToast } = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState<MemberCreate>({
@@ -19,6 +21,17 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
     year_of_study: 2,
     github_username: ''
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: prev.name || user.display_name || user.username,
+        email: prev.email || user.college_email || user.email || '',
+        github_username: prev.github_username || user.username
+      }));
+    }
+  }, [user, isOpen]);
 
   if (!isOpen) return null;
 
@@ -30,13 +43,6 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
       await api.joinClub(formData);
       showToast(`🎉 Welcome to FOSS Club RIT, ${formData.name}!`, 'success');
       onClose();
-      setFormData({
-        name: '',
-        email: '',
-        department: 'Computer Science & Engg',
-        year_of_study: 2,
-        github_username: ''
-      });
     } catch (err: any) {
       showToast(err.message || 'Failed to register membership', 'error');
     } finally {
@@ -52,12 +58,30 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
         </button>
 
         <div style={{ marginBottom: 'var(--space-lg)' }}>
-          <span className="event-badge">Founding Membership</span>
+          <span className="event-badge">Membership Registry</span>
           <h2 style={{ marginTop: '8px', fontSize: '1.6rem' }}>Join FOSS Club RIT</h2>
           <p style={{ fontSize: '0.9rem' }}>
-            Genesis chapter launch with TinkerHub. Open to all students at RIT Kottayam.
+            Genesis chapter launch with TinkerHub. Open to all students and branches at RIT Kottayam.
           </p>
         </div>
+
+        {user && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'var(--foss-mint-subtle)',
+            border: '1px solid rgba(8, 183, 79, 0.25)',
+            borderRadius: 'var(--radius-md)',
+            padding: '8px 12px',
+            fontSize: '0.82rem',
+            color: 'var(--foss-mint)',
+            marginBottom: 'var(--space-md)'
+          }}>
+            <CheckCircle2 size={15} />
+            <span>Authenticated with GitHub as <strong>@{user.username}</strong></span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -84,6 +108,9 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
               value={formData.email}
               onChange={e => setFormData({ ...formData, email: e.target.value })}
             />
+            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+              🔒 Protected: Your email is kept private and never exposed on the public community roster.
+            </span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)' }}>
@@ -141,7 +168,7 @@ export const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose }) => {
             disabled={submitting}
           >
             <Sparkles size={16} />
-            {submitting ? 'Registering...' : 'Join Founding Cohort'}
+            {submitting ? 'Registering...' : 'Join Student Directory'}
           </button>
         </form>
       </div>

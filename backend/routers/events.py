@@ -1,58 +1,54 @@
-"""
-Events Router for FOSS Club.
-Handles listing upcoming events, filtering, details, and RSVP registrations.
-"""
-from fastapi import APIRouter, HTTPException, status
 from typing import List, Optional
-from models import Event, EventRSVP
-from database import EVENTS_DB, RSVPS_DB
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from db.session import get_db
+from db.models import EventRSVPDB
+from schemas.event import Event, EventRSVP, RSVPResponse
+from services.tinkerhub_service import scrape_tinkerhub_events, clear_events_cache
 
-router = APIRouter(prefix="/api/events", tags=["Events"])
+router = APIRouter(prefix="/api/events", tags=["Events & Workshops"])
 
 @router.get("", response_model=List[Event])
-def list_events():
-    """Retrieve all club events."""
-    return list(EVENTS_DB.values())
+async def get_events(mode: Optional[str] = None):
+    """Retrieve live TinkerHub x FOSS Club workshops and events."""
+    events = await scrape_tinkerhub_events()
+    
+    if mode and mode.lower() != "all":
+        events = [e for e in events if e.get("mode", "").lower() == mode.lower()]
+        
+    return [Event(**e) for e in events]
+
+@router.post("/sync-tinkerhub", response_model=List[Event])
+async def sync_tinkerhub_live_events():
+    """Flush cache and trigger an instant live re-scrape from tinkerhub.org/events."""
+    clear_events_cache()
+    events = await scrape_tinkerhub_events(force_refresh=True)
+    return [Event(**e) for e in events]
 
 @router.get("/{event_id}", response_model=Event)
-def get_event(event_id: str):
-    """Get single event details by its ID."""
-    if event_id not in EVENTS_DB:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
-    return EVENTS_DB[event_id]
+async def get_event_by_id(event_id: str):
+    """Retrieve details for a single workshop."""
+    events = await scrape_tinkerhub_events()
+    for e in events:
+        if e.get("id") == event_id:
+            return Event(**e)
+    raise HTTPException(status_code=404, detail="Event not found.")
 
-@router.post("/{event_id}/rsvp", status_code=status.HTTP_201_CREATED)
-def rsvp_event(event_id: str, rsvp: EventRSVP):
-    """RSVP for an event."""
-    if event_id not in EVENTS_DB:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
-    
-    event = EVENTS_DB[event_id]
-    if not event.is_open:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Event registration is closed")
-    
-    if event.registered_count >= event.capacity:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Event capacity is full")
-    
-    # Store RSVP
-    if event_id not in RSVPS_DB:
-        RSVPS_DB[event_id] = []
-    
-    # Check if duplicate email already RSVP'd
-    existing = [r for r in RSVPS_DB[event_id] if r.get("email") == rsvp.email]
-    if existing:
-        return {
-            "success": True,
-            "message": f"You are already registered for {event.title}!",
-            "event_title": event.title
-        }
+@router.post("/rsvp", response_model=RSVPResponse)
+def rsvp_event(rsvp: EventRSVP, db: Session = Depends(get_db)):
+    """RSVP for a campus community workshop."""
+    new_rsvp = EventRSVPDB(
+        event_id=rsvp.event_id,
+        name=rsvp.name,
+        email=rsvp.email,
+        college_id=rsvp.college_id
+    )
+    db.add(new_rsvp)
+    db.commit()
+    db.refresh(new_rsvp)
 
-    RSVPS_DB[event_id].append(rsvp.model_dump())
-    event.registered_count += 1
-
-    return {
-        "success": True,
-        "message": f"Spot confirmed! We've sent details to {rsvp.email}.",
-        "event_title": event.title,
-        "seats_remaining": event.capacity - event.registered_count
-    }
+    return RSVPResponse(
+        status="confirmed",
+        message=f"Thank you {rsvp.name}! Your RSVP has been confirmed.",
+        rsvp_id=new_rsvp.id
+    )

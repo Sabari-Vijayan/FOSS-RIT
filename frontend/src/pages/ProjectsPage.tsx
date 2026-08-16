@@ -10,7 +10,7 @@ interface ProjectsPageProps {
 
 export const ProjectsPage: React.FC<ProjectsPageProps> = ({ onOpenSubmitProject, refreshKey }) => {
   return (
-    <div style={{ paddingTop: 'var(--space-2xl)', minHeight: '80vh' }}>
+    <div style={{ paddingTop: 'var(--space-3xl)', paddingBottom: 'var(--space-4xl)', minHeight: '85vh' }}>
       <div className="container">
         {/* Breadcrumb Navigation */}
         <div style={{ marginBottom: 'var(--space-lg)' }}>

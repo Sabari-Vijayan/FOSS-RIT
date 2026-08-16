@@ -1,10 +1,29 @@
+export interface User {
+  id: string;
+  username: string;
+  display_name?: string;
+  email?: string;
+  avatar_url?: string;
+  college_email?: string;
+  is_verified_student: boolean;
+  role: string;
+  created_at?: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
+
 export interface Member {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   github_username?: string;
   department: string;
   year_of_study: number;
+  is_verified_student?: boolean;
   joined_at?: string;
 }
 
@@ -22,9 +41,19 @@ export interface Event {
   description: string;
   date_time: string;
   location: string;
+  date?: string;
+  time?: string;
+  venue?: string;
   capacity: number;
   registered_count: number;
   is_open?: boolean;
+  is_collab?: boolean;
+  source?: string;
+  banner_url?: string;
+  event_type?: string;
+  meet_url?: string;
+  event_url?: string;
+  registration_link?: string;
 }
 
 export interface EventRSVP {
@@ -41,6 +70,7 @@ export interface Project {
   stars: number;
   forks: number;
   open_issues: number;
+  submitted_by_username?: string;
   last_synced_at?: string;
 }
 

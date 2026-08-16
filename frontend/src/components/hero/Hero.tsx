@@ -17,9 +17,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenJoin }) => {
           </div>
 
           <h1 className="hero-title">
-            Build in the Open.<br />
-            Learn by Tinkering.<br />
-            <span className="mint-text">Ship Together.</span>
+            Learn.<br />
+            Share.<br />
+            <span className="mint-text">Contribute.</span>
           </h1>
 
           <p className="hero-description">

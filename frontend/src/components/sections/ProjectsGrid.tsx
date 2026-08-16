@@ -149,11 +149,18 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
               <div key={proj.id} className="project-card interactive-hover-card">
                 <div>
                   <div className="project-header">
-                    <div className="project-title">
-                      <GithubIcon size={18} color="var(--foss-mint)" />
-                      <span>{proj.name}</span>
+                    <div style={{ flex: 1, minWidth: 0, paddingRight: '8px' }}>
+                      <div className="project-title">
+                        <GithubIcon size={18} color="var(--foss-mint)" style={{ flexShrink: 0, marginTop: '3px' }} />
+                        <span style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{proj.name}</span>
+                      </div>
+                      {proj.submitted_by_username && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', fontFamily: 'var(--font-mono)' }}>
+                          by @{proj.submitted_by_username}
+                        </div>
+                      )}
                     </div>
-                    <span className="tag-badge" style={{ color: 'var(--foss-mint)', borderColor: 'rgba(8, 183, 79, 0.3)' }}>
+                    <span className="tag-badge" style={{ color: 'var(--foss-mint)', borderColor: 'rgba(8, 183, 79, 0.3)', flexShrink: 0 }}>
                       Open Source
                     </span>
                   </div>
