@@ -40,11 +40,15 @@ app.include_router(members.router)
 
 @app.get("/api/health", tags=["Health"])
 def health_check():
-    """Health check endpoint to verify backend status."""
+    """Health check endpoint to verify backend and database status."""
+    from core.config import settings
+    db_type = "PostgreSQL (Supabase)" if ("postgres" in (settings.DATABASE_URL or "")) else "Local SQLite"
     return {
         "status": "healthy",
         "service": "FOSS Club API",
         "version": "1.0.0",
+        "database": db_type,
+        "is_oauth_configured": bool(settings.GITHUB_CLIENT_ID and settings.GITHUB_CLIENT_SECRET),
         "motto": "Learn. Share. Contribute."
     }
 

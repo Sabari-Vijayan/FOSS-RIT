@@ -2,9 +2,10 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load .env from backend directory
+# Only load local .env if it exists on disk
 env_path = Path(__file__).resolve().parent.parent / ".env"
-load_dotenv(dotenv_path=env_path, override=True)
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path, override=True)
 
 class Settings:
     PROJECT_NAME: str = "FOSS Club RIT API"
@@ -17,32 +18,41 @@ class Settings:
 
     @property
     def DATABASE_URL(self) -> str:
-        load_dotenv(dotenv_path=env_path, override=True)
-        return os.getenv("DATABASE_URL", "").strip()
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+        return os.environ.get("DATABASE_URL", os.getenv("DATABASE_URL", "")).strip()
 
     @property
     def JWT_SECRET_KEY(self) -> str:
-        return os.getenv("JWT_SECRET_KEY", "foss-club-rit-super-secret-jwt-key-change-in-production-2026")
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+        return os.environ.get("JWT_SECRET_KEY", os.getenv("JWT_SECRET_KEY", "foss_rit_jwt_super_secret_key_2026_genesis_chapter_launch")).strip()
 
     @property
     def GITHUB_CLIENT_ID(self) -> str:
-        load_dotenv(dotenv_path=env_path, override=True)
-        return os.getenv("GITHUB_CLIENT_ID", "").strip()
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+        return os.environ.get("GITHUB_CLIENT_ID", os.getenv("GITHUB_CLIENT_ID", "")).strip()
 
     @property
     def GITHUB_CLIENT_SECRET(self) -> str:
-        load_dotenv(dotenv_path=env_path, override=True)
-        return os.getenv("GITHUB_CLIENT_SECRET", "").strip()
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+        return os.environ.get("GITHUB_CLIENT_SECRET", os.getenv("GITHUB_CLIENT_SECRET", "")).strip()
 
     @property
     def GITHUB_REDIRECT_URI(self) -> str:
-        return os.getenv("GITHUB_REDIRECT_URI", "http://localhost:3000/auth/callback").strip()
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+        return os.environ.get("GITHUB_REDIRECT_URI", os.getenv("GITHUB_REDIRECT_URI", "http://localhost:3000/auth/callback")).strip()
 
     @property
     def TINKERHUB_CAMPUS_URL(self) -> str:
-        return os.getenv(
+        if env_path.exists():
+            load_dotenv(dotenv_path=env_path)
+        return os.environ.get(
             "TINKERHUB_CAMPUS_URL",
-            "https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor"
+            os.getenv("TINKERHUB_CAMPUS_URL", "https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor")
         ).strip()
 
 settings = Settings()
