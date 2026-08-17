@@ -175,21 +175,6 @@ export const api = {
     return await res.json();
   },
 
-  async updatePrivacySettings(isLeaderboardHidden: boolean): Promise<User> {
-    const res = await fetch(`${API_BASE}/auth/privacy`, {
-      method: 'PATCH',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ is_leaderboard_hidden: isLeaderboardHidden })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Failed to update privacy settings' }));
-      throw new Error(err.detail || 'Failed to update privacy settings');
-    }
-    const updatedUser = await res.json();
-    localStorage.setItem('foss_user_cache', JSON.stringify(updatedUser));
-    return updatedUser;
-  },
-
   // --- Events APIs ---
   async getEvents(): Promise<Event[]> {
     try {

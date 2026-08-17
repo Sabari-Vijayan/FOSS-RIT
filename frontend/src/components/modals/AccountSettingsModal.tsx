@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../services/api';
-import { X, Shield, Eye, EyeOff, Trash2, AlertTriangle, CheckCircle2, User as UserIcon } from 'lucide-react';
+import { X, Shield, Trash2, AlertTriangle, CheckCircle2, User as UserIcon } from 'lucide-react';
 
 interface AccountSettingsModalProps {
   isOpen: boolean;
@@ -10,41 +10,12 @@ interface AccountSettingsModalProps {
 }
 
 export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOpen, onClose }) => {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout } = useAuth();
   const { showToast } = useToast();
-  const [isHidden, setIsHidden] = useState(user?.is_leaderboard_hidden ?? false);
-  const [updatingPrivacy, setUpdatingPrivacy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  React.useEffect(() => {
-    if (user) {
-      setIsHidden(Boolean(user.is_leaderboard_hidden));
-    }
-  }, [user?.is_leaderboard_hidden, isOpen]);
-
   if (!isOpen || !user) return null;
-
-  const handleTogglePrivacy = async () => {
-    const nextVal = !isHidden;
-    setIsHidden(nextVal);
-    setUpdatingPrivacy(true);
-    try {
-      const updatedUser = await api.updatePrivacySettings(nextVal);
-      updateUser(updatedUser);
-      showToast(
-        nextVal
-          ? 'Incognito Mode enabled. Your profile is now hidden from the public leaderboard.'
-          : 'Public mode enabled. Your profile is now visible on the campus leaderboard.',
-        'info'
-      );
-    } catch (err: any) {
-      setIsHidden(!nextVal); // revert
-      showToast(err.message || 'Failed to update privacy settings', 'error');
-    } finally {
-      setUpdatingPrivacy(false);
-    }
-  };
 
   const handleDeleteAccount = async () => {
     setDeleting(true);
@@ -61,7 +32,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
         <button className="modal-close-btn" onClick={onClose} aria-label="Close modal">
           <X size={16} />
         </button>
@@ -82,36 +53,36 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
             <Shield size={22} />
           </div>
           <div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Account & Privacy Settings</h3>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>Account & Data</h3>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              @{user.username} // Manage identity & data rights
+              @{user.username} // Manage your student profile & data
             </span>
           </div>
         </div>
 
         {/* User Card Summary */}
         <div style={{
-          padding: '12px 14px',
+          padding: '14px 16px',
           background: 'var(--surface-raised)',
           border: '1px solid var(--surface-border)',
           borderRadius: 'var(--radius-sm)',
-          marginBottom: 'var(--space-lg)',
+          marginBottom: 'var(--space-xl)',
           display: 'flex',
           alignItems: 'center',
           gap: '12px'
         }}>
           {user.avatar_url ? (
-            <img src={user.avatar_url} alt={user.username} style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid var(--surface-border)' }} />
+            <img src={user.avatar_url} alt={user.username} style={{ width: '44px', height: '44px', borderRadius: '50%', border: '1.5px solid var(--foss-mint)' }} />
           ) : (
-            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--surface-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <UserIcon size={18} />
+            <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'var(--surface-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <UserIcon size={20} />
             </div>
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 600, fontSize: '0.92rem', color: 'var(--text-primary)' }}>
+            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
               {user.display_name || user.username}
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
               {user.college_email || user.email || 'No email attached'}
             </div>
           </div>
@@ -122,47 +93,7 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
           )}
         </div>
 
-        {/* Section 1: Privacy Settings */}
-        <div style={{ marginBottom: 'var(--space-xl)' }}>
-          <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: 'var(--space-md)' }}>
-            // Leaderboard Visibility
-          </h4>
-          <div style={{
-            padding: '14px',
-            background: 'var(--surface-base)',
-            border: '1px solid var(--surface-border)',
-            borderRadius: 'var(--radius-sm)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '16px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {isHidden ? <EyeOff size={18} color="var(--text-muted)" /> : <Eye size={18} color="var(--foss-mint)" />}
-              <div>
-                <div style={{ fontSize: '0.88rem', fontWeight: 600 }}>
-                  {isHidden ? 'Incognito Mode (Hidden)' : 'Public Contributor (Visible)'}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  {isHidden
-                    ? 'Your rank and XP are calculated privately, but hidden from the public leaderboard.'
-                    : 'Your developer rank, level, and badges are visible on the campus leaderboard.'}
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={handleTogglePrivacy}
-              disabled={updatingPrivacy}
-              className="btn btn-secondary btn-sm"
-              style={{ minWidth: '85px', fontSize: '0.78rem' }}
-            >
-              {updatingPrivacy ? 'Saving...' : isHidden ? 'Make Public' : 'Hide Profile'}
-            </button>
-          </div>
-        </div>
-
-        {/* Section 2: Danger Zone */}
+        {/* Danger Zone */}
         <div style={{ borderTop: '1px solid var(--surface-border)', paddingTop: 'var(--space-lg)' }}>
           <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--byte-red, #E84A36)', fontFamily: 'var(--font-mono)', marginBottom: 'var(--space-md)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <AlertTriangle size={14} /> // Danger Zone
@@ -181,10 +112,10 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
             }}>
               <div>
                 <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                  Delete Account & All Data
+                  Delete Account & Data
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  Permanently unlinks your GitHub identity, removes all your featured repos, and deletes your XP stats.
+                  Permanently unlinks your GitHub identity and removes all your featured repos.
                 </div>
               </div>
               <button
