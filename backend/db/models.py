@@ -17,15 +17,16 @@ class UserDB(Base):
     avatar_url = Column(String, nullable=True)
     role = Column(String, default="member")  # member, core_team, admin
     
-    # Campus verification
+    # Campus verification & privacy
     college_email = Column(String, nullable=True, unique=True)
     is_verified_student = Column(Boolean, default=False)
+    is_leaderboard_hidden = Column(Boolean, default=False)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    projects = relationship("ProjectDB", back_populates="submitter")
+    projects = relationship("ProjectDB", back_populates="submitter", cascade="all, delete-orphan")
 
 
 class ProjectDB(Base):

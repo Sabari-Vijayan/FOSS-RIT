@@ -11,6 +11,7 @@ class UserPublic(BaseModel):
     role: str
     college_email: Optional[str] = None
     is_verified_student: bool
+    is_leaderboard_hidden: bool = False
     created_at: datetime
 
     class Config:
@@ -23,3 +24,6 @@ class AuthResponse(BaseModel):
 
 class VerifyStudentEmail(BaseModel):
     college_email: EmailStr
+
+class PrivacyUpdate(BaseModel):
+    is_leaderboard_hidden: bool

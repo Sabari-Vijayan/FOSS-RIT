@@ -7,6 +7,7 @@ import { Footer } from './components/layout/Footer';
 import { HomePage } from './pages/HomePage';
 import { EventsPage } from './pages/EventsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
+import { LeaderboardPage } from './pages/LeaderboardPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { RsvpModal } from './components/modals/RsvpModal';
 import { ProjectModal } from './components/modals/ProjectModal';
@@ -86,6 +87,10 @@ export const App: React.FC = () => {
                     refreshKey={refreshKey}
                   />
                 } 
+              />
+              <Route 
+                path="/leaderboard" 
+                element={<LeaderboardPage />} 
               />
               <Route 
                 path="/auth/callback" 

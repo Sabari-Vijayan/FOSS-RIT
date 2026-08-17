@@ -1,4 +1,4 @@
-import { Event, EventRSVP, Project, ProjectCreate, Member, MemberCreate, ClubStats, AuthResponse, User } from '../types';
+import { Event, EventRSVP, Project, ProjectCreate, Member, MemberCreate, ClubStats, AuthResponse, User, LeaderboardResponse, ContributorRank } from '../types';
 
 const API_BASE = '/api';
 
@@ -159,6 +159,35 @@ export const api = {
       throw new Error(err.detail || 'Failed to verify college email');
     }
     return await res.json();
+  },
+
+  async deleteAccount(): Promise<{ status: string; message: string }> {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to delete account' }));
+      throw new Error(err.detail || 'Failed to delete account');
+    }
+    localStorage.removeItem('foss_auth_token');
+    localStorage.removeItem('foss_user_cache');
+    return await res.json();
+  },
+
+  async updatePrivacySettings(isLeaderboardHidden: boolean): Promise<User> {
+    const res = await fetch(`${API_BASE}/auth/privacy`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ is_leaderboard_hidden: isLeaderboardHidden })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: 'Failed to update privacy settings' }));
+      throw new Error(err.detail || 'Failed to update privacy settings');
+    }
+    const updatedUser = await res.json();
+    localStorage.setItem('foss_user_cache', JSON.stringify(updatedUser));
+    return updatedUser;
   },
 
   // --- Events APIs ---
@@ -376,5 +405,115 @@ export const api = {
       throw new Error(err.detail || 'Failed to register membership');
     }
     return await res.json();
+  },
+
+  // --- Leaderboard & XP APIs ---
+  async getLeaderboard(timeframe: 'all_time' | 'monthly' = 'all_time'): Promise<LeaderboardResponse> {
+    try {
+      const res = await fetch(`${API_BASE}/leaderboard?timeframe=${timeframe}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch {
+      // Fallback: Compute dynamic Boot.dev RPG stats from cached/fallback projects
+      const cached = localStorage.getItem('foss_projects_cache');
+      const projects: Project[] = cached ? JSON.parse(cached) : FALLBACK_PROJECTS;
+
+      const userMap: Record<string, { projects: Project[]; is_verified: boolean }> = {};
+
+      projects.forEach(p => {
+        const username = p.submitted_by_username || (p.repo_url.match(/github\.com\/([^\/]+)/)?.[1] ?? 'rit-builder');
+        if (!userMap[username]) {
+          userMap[username] = { projects: [], is_verified: p.is_verified_student ?? true };
+        }
+        userMap[username].projects.push(p);
+      });
+
+      const fallbackUsers = Object.entries(userMap).map(([username, data], index) => {
+        const userProjects = data.projects;
+        const totalStars = userProjects.reduce((acc, p) => acc + p.stars, 0);
+        const totalForks = userProjects.reduce((acc, p) => acc + p.forks, 0);
+
+        let xp = data.is_verified ? 50 : 0;
+        xp += userProjects.length >= 1 ? 100 : 0;
+        xp += userProjects.length >= 2 ? 75 : 0;
+        xp += userProjects.length >= 3 ? 75 : 0;
+        xp += totalForks * 20;
+        xp += userProjects.reduce((acc, p) => acc + Math.min(100, p.stars * 5), 0);
+
+        const techSet = new Set(userProjects.flatMap(p => p.tech_stack.map(t => t.toLowerCase())));
+        xp += Math.min(60, techSet.size * 15);
+
+        let level = 1;
+        let title = "Script Tinkerer";
+        let min_xp = 0;
+        let max_xp = 100;
+
+        if (xp >= 1500) {
+          level = 5;
+          title = "Kernel Overlord";
+          min_xp = 1500;
+          max_xp = 3000;
+        } else if (xp >= 700) {
+          level = 4;
+          title = "Systems Architect";
+          min_xp = 700;
+          max_xp = 1500;
+        } else if (xp >= 300) {
+          level = 3;
+          title = "Byte Craftsman";
+          min_xp = 300;
+          max_xp = 700;
+        } else if (xp >= 100) {
+          level = 2;
+          title = "Open Source Novice";
+          min_xp = 100;
+          max_xp = 300;
+        }
+
+        const progress = Math.min(100, Math.round(((xp - min_xp) / (max_xp - min_xp)) * 100));
+
+        const badges = [];
+        if (data.is_verified) badges.push({ id: "verified_rit", name: "Campus Verified", icon: "🎓", color: "#08B74F" });
+        if (userProjects.length >= 1) badges.push({ id: "first_ship", name: "First Ship", icon: "🚀", color: "#2B7FFF" });
+        if (userProjects.length >= 3) badges.push({ id: "trilogy", name: "The Trilogy", icon: "🔱", color: "#F5C040" });
+        if (totalForks >= 3) badges.push({ id: "peer_forked", name: "Peer Forked", icon: "🍴", color: "#A855F7" });
+        if (techSet.size >= 3) badges.push({ id: "polyglot", name: "Polyglot", icon: "⚡", color: "#EC4899" });
+        if (totalStars >= 10) badges.push({ id: "star_hunter", name: "Star Hunter", icon: "⭐", color: "#EAB308" });
+
+        return {
+          user_id: `usr-${index + 1}`,
+          username: username,
+          display_name: username.charAt(0).toUpperCase() + username.slice(1),
+          avatar_url: `https://github.com/${username}.png`,
+          is_verified_student: data.is_verified,
+          role: 'member',
+          xp,
+          level,
+          title,
+          min_xp,
+          max_xp,
+          progress,
+          total_projects: userProjects.length,
+          total_stars: totalStars,
+          total_forks: totalForks,
+          top_projects: userProjects.map(p => p.name).slice(0, 3),
+          badges
+        };
+      });
+
+      fallbackUsers.sort((a, b) => b.xp - a.xp);
+
+      const ranked: ContributorRank[] = fallbackUsers.map((u, idx) => ({
+        ...u,
+        rank: idx + 1,
+        medal: idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null
+      }));
+
+      return {
+        timeframe,
+        total_contributors: ranked.length,
+        contributors: ranked
+      };
+    }
   }
 };

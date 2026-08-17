@@ -14,10 +14,13 @@ import {
   Compass,
   Calendar,
   Layers,
-  FileText
+  FileText,
+  Trophy,
+  Settings
 } from 'lucide-react';
 import { GitHubIcon } from '../ui/GitHubIcon';
 import { StudentVerifyModal } from '../modals/StudentVerifyModal';
+import { AccountSettingsModal } from '../modals/AccountSettingsModal';
 import { useVibe, VIBES, VibeId } from '../../context/VibeContext';
 import { MascotIcon } from '../ui/MascotIcon';
 
@@ -31,6 +34,7 @@ export const Navbar: React.FC = () => {
   const [vibeMenuOpen, setVibeMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isVerifyOpen, setIsVerifyOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -102,6 +106,14 @@ export const Navbar: React.FC = () => {
                   className={({ isActive }) => `nav-link ${isActive ? 'active-nav-link' : ''}`}
                 >
                   Projects
+                </NavLink>
+              </li>
+              <li>
+                <NavLink 
+                  to="/leaderboard" 
+                  className={({ isActive }) => `nav-link ${isActive ? 'active-nav-link' : ''}`}
+                >
+                  Leaderboard
                 </NavLink>
               </li>
               <li>
@@ -317,6 +329,14 @@ export const Navbar: React.FC = () => {
                     </button>
 
                     <button
+                      onClick={() => setIsSettingsOpen(true)}
+                      className="dropdown-item"
+                    >
+                      <Settings size={14} />
+                      <span>Account & Privacy</span>
+                    </button>
+
+                    <button
                       onClick={logout}
                       className="dropdown-item dropdown-item-danger"
                     >
@@ -372,6 +392,13 @@ export const Navbar: React.FC = () => {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Layers size={16} /> Projects Radar
+              </NavLink>
+              <NavLink 
+                to="/leaderboard" 
+                className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Trophy size={16} /> Leaderboard
               </NavLink>
               <a 
                 href="/#about" 
@@ -435,6 +462,12 @@ export const Navbar: React.FC = () => {
       <StudentVerifyModal
         isOpen={isVerifyOpen}
         onClose={() => setIsVerifyOpen(false)}
+      />
+
+      {/* Account & Privacy Settings Modal */}
+      <AccountSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </>
   );

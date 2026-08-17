@@ -66,6 +66,53 @@ async def get_my_profile(current_user: UserDB = Depends(get_current_user)):
     """Return the authenticated user profile."""
     return UserPublic.model_validate(current_user)
 
+@router.delete("/me")
+async def delete_my_account(
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Permanently delete the authenticated student's account,
+    cascading to all their submitted projects and associated registrations.
+    """
+    user_id = current_user.id
+    user_name = current_user.username
+    user_email = current_user.email
+    college_email = current_user.college_email
+
+    # Delete all projects submitted by this user
+    from db.models import ProjectDB, EventRSVPDB
+    db.query(ProjectDB).filter(
+        (ProjectDB.submitted_by_id == user_id) | (ProjectDB.submitted_by_username == user_name)
+    ).delete(synchronize_session=False)
+
+    # Delete any RSVPs associated with user email
+    if user_email or college_email:
+        emails_to_clean = [e for e in [user_email, college_email] if e]
+        db.query(EventRSVPDB).filter(EventRSVPDB.email.in_(emails_to_clean)).delete(synchronize_session=False)
+
+    # Delete user record
+    db.delete(current_user)
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": f"Account @{user_name} and all associated campus data have been permanently deleted."
+    }
+
+@router.patch("/privacy", response_model=UserPublic)
+async def update_privacy_settings(
+    payload: dict,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Toggle whether student profile appears on the public campus leaderboard."""
+    if "is_leaderboard_hidden" in payload:
+        current_user.is_leaderboard_hidden = bool(payload["is_leaderboard_hidden"])
+        db.commit()
+        db.refresh(current_user)
+    return UserPublic.model_validate(current_user)
+
 @router.post("/verify-student", response_model=UserPublic)
 async def verify_student_status(
     payload: VerifyStudentEmail,

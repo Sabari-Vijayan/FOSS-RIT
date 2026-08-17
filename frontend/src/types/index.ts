@@ -6,8 +6,45 @@ export interface User {
   avatar_url?: string;
   college_email?: string;
   is_verified_student: boolean;
+  is_leaderboard_hidden?: boolean;
   role: string;
   created_at?: string;
+}
+
+export interface DeveloperBadge {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+}
+
+export interface ContributorRank {
+  user_id: string;
+  username: string;
+  display_name: string;
+  avatar_url: string;
+  is_verified_student: boolean;
+  role: string;
+  rank: number;
+  medal?: '🥇' | '🥈' | '🥉' | null;
+  xp: number;
+  level: number;
+  title: string;
+  min_xp: number;
+  max_xp: number;
+  progress: number;
+  total_projects: number;
+  total_stars: number;
+  total_forks: number;
+  top_projects: string[];
+  badges: DeveloperBadge[];
+  joined_at?: string;
+}
+
+export interface LeaderboardResponse {
+  timeframe: 'all_time' | 'monthly';
+  total_contributors: number;
+  contributors: ContributorRank[];
 }
 
 export interface AuthResponse {

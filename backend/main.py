@@ -5,7 +5,7 @@ Provides RESTful APIs for Events, Projects, Members, Auth, and Community Live St
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import events, projects, members, auth
+from routers import events, projects, members, auth, leaderboard
 from db import init_db
 
 @asynccontextmanager
@@ -37,6 +37,7 @@ app.include_router(auth.router)
 app.include_router(events.router)
 app.include_router(projects.router)
 app.include_router(members.router)
+app.include_router(leaderboard.router)
 
 @app.get("/api/health", tags=["Health"])
 def health_check():
