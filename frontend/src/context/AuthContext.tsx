@@ -12,6 +12,7 @@ interface AuthContextType {
   loginDev: (username?: string) => Promise<User>;
   logout: () => void;
   verifyCollegeEmail: (email: string) => Promise<User>;
+  updateUser: (updatedData: Partial<User>) => void;
   redirectToGitHub: () => void;
 }
 
@@ -88,6 +89,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return updated;
   };
 
+  const updateUser = (updatedData: Partial<User>) => {
+    setUser(prev => prev ? { ...prev, ...updatedData } : null);
+  };
+
   const redirectToGitHub = () => {
     if (!githubClientId) {
       console.warn('[Auth] GitHub Client ID not configured.');
@@ -109,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loginDev,
       logout,
       verifyCollegeEmail,
+      updateUser,
       redirectToGitHub
     }}>
       {children}

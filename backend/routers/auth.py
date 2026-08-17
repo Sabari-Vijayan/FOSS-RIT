@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from db.session import get_db
 from db.models import UserDB
-from schemas.auth import UserPublic, AuthResponse, VerifyStudentEmail
+from schemas.auth import UserPublic, AuthResponse, VerifyStudentEmail, PrivacyUpdate
 from core.security import create_access_token, get_current_user
 from core.config import settings
 from services.github_service import exchange_github_code
@@ -102,15 +102,14 @@ async def delete_my_account(
 
 @router.patch("/privacy", response_model=UserPublic)
 async def update_privacy_settings(
-    payload: dict,
+    payload: PrivacyUpdate,
     current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Toggle whether student profile appears on the public campus leaderboard."""
-    if "is_leaderboard_hidden" in payload:
-        current_user.is_leaderboard_hidden = bool(payload["is_leaderboard_hidden"])
-        db.commit()
-        db.refresh(current_user)
+    current_user.is_leaderboard_hidden = payload.is_leaderboard_hidden
+    db.commit()
+    db.refresh(current_user)
     return UserPublic.model_validate(current_user)
 
 @router.post("/verify-student", response_model=UserPublic)

@@ -10,12 +10,18 @@ interface AccountSettingsModalProps {
 }
 
 export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOpen, onClose }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const { showToast } = useToast();
   const [isHidden, setIsHidden] = useState(user?.is_leaderboard_hidden ?? false);
   const [updatingPrivacy, setUpdatingPrivacy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  React.useEffect(() => {
+    if (user) {
+      setIsHidden(Boolean(user.is_leaderboard_hidden));
+    }
+  }, [user?.is_leaderboard_hidden, isOpen]);
 
   if (!isOpen || !user) return null;
 
@@ -24,7 +30,8 @@ export const AccountSettingsModal: React.FC<AccountSettingsModalProps> = ({ isOp
     setIsHidden(nextVal);
     setUpdatingPrivacy(true);
     try {
-      await api.updatePrivacySettings(nextVal);
+      const updatedUser = await api.updatePrivacySettings(nextVal);
+      updateUser(updatedUser);
       showToast(
         nextVal
           ? 'Incognito Mode enabled. Your profile is now hidden from the public leaderboard.'
