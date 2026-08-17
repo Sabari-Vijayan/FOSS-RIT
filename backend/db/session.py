@@ -46,8 +46,24 @@ def get_db():
         db.close()
 
 def init_db():
-    """Create all tables if they do not exist."""
+    """Create all tables if they do not exist, and safely migrate new columns."""
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         print(f"[Database] Notice during table creation: {e}")
+
+    try:
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            if "sqlite" in DATABASE_URL:
+                try:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN is_leaderboard_hidden BOOLEAN DEFAULT 0;"))
+                except Exception:
+                    pass
+            else:
+                try:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_leaderboard_hidden BOOLEAN DEFAULT FALSE;"))
+                except Exception:
+                    pass
+    except Exception as err:
+        print(f"[Database] Notice during column migration check: {err}")
