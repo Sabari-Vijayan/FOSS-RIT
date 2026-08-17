@@ -6,7 +6,6 @@ export interface User {
   avatar_url?: string;
   college_email?: string;
   is_verified_student: boolean;
-  is_leaderboard_hidden?: boolean;
   role: string;
   created_at?: string;
 }

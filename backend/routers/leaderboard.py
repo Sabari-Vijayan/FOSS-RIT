@@ -110,9 +110,8 @@ def get_campus_leaderboard(
 ):
     """
     Retrieve ranked student contributor leaderboard with Boot.dev RPG XP, levels, and badges.
-    Excludes users who have opted for incognito privacy mode.
     """
-    users = db.query(UserDB).filter(UserDB.is_leaderboard_hidden == False).all()
+    users = db.query(UserDB).all()
     all_projects = db.query(ProjectDB).all()
 
     now = datetime.utcnow()
