@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { ContributorRank } from '../types';
-import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { 
   Star, 
@@ -15,12 +14,15 @@ import {
   HelpCircle,
   ExternalLink,
   ArrowLeft,
-  Zap
+  Zap,
+  Sparkles
 } from 'lucide-react';
-import { GitHubIcon } from '../components/ui/GitHubIcon';
 
-export const LeaderboardPage: React.FC = () => {
-  const { user, redirectToGitHub } = useAuth();
+interface LeaderboardPageProps {
+  onOpenSubmitProject?: () => void;
+}
+
+export const LeaderboardPage: React.FC<LeaderboardPageProps> = ({ onOpenSubmitProject }) => {
   const { showToast } = useToast();
   const [timeframe, setTimeframe] = useState<'all_time' | 'monthly'>('all_time');
   const [contributors, setContributors] = useState<ContributorRank[]>([]);
@@ -54,13 +56,8 @@ export const LeaderboardPage: React.FC = () => {
     fetchLeaderboard();
   }, [timeframe]);
 
-  const currentUserRank = contributors.find(c => 
-    user && (c.username.toLowerCase() === user.username.toLowerCase() || c.user_id === user.id)
-  );
-
   // Filter contributors
   const filteredContributors = contributors.filter(c => {
-    // Search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchName = c.username.toLowerCase().includes(q) || 
@@ -69,7 +66,6 @@ export const LeaderboardPage: React.FC = () => {
       if (!matchName) return false;
     }
 
-    // Tier filter
     if (activeTier === 'verified') return c.is_verified_student;
     if (activeTier !== 'all') return c.level === parseInt(activeTier, 10);
 
@@ -96,7 +92,7 @@ export const LeaderboardPage: React.FC = () => {
           </Link>
         </div>
 
-        {/* Page Banner / Hero Card (matching ProjectsPage style) */}
+        {/* Page Banner / Hero Card */}
         <div style={{
           background: 'var(--open-gray)',
           border: '1px solid var(--surface-border)',
@@ -119,39 +115,15 @@ export const LeaderboardPage: React.FC = () => {
             </p>
           </div>
 
-          {user ? (
-            <div style={{
-              background: 'var(--surface-raised)',
-              border: '1px solid var(--surface-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: '14px 18px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
-            }}>
-              <img 
-                src={user.avatar_url || `https://github.com/${user.username}.png`} 
-                alt={user.username}
-                style={{ width: '42px', height: '42px', borderRadius: '50%', border: '2px solid var(--foss-mint)' }} 
-              />
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-primary)' }}>
-                  @{user.username}
-                </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--foss-mint)', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                  {currentUserRank ? `LVL ${currentUserRank.level} • ${currentUserRank.title}` : 'Script Tinkerer'}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <button className="btn btn-primary" onClick={redirectToGitHub}>
-              <GitHubIcon size={16} />
-              Sign In with GitHub
+          {onOpenSubmitProject && (
+            <button className="btn btn-primary" onClick={onOpenSubmitProject}>
+              <Sparkles size={16} />
+              Feature Your Project
             </button>
           )}
         </div>
 
-        {/* Section Header & Controls (matching ProjectsGrid header layout) */}
+        {/* Section Header & Controls */}
         <section className="section" style={{ padding: 0 }}>
           <div className="section-header">
             <div>
@@ -251,7 +223,7 @@ export const LeaderboardPage: React.FC = () => {
             </div>
           )}
 
-          {/* Tier Filter Chips (matching Tech Filters on Projects page) */}
+          {/* Tier Filter Chips */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: 'var(--space-xl)' }}>
             {tierFilters.map(t => (
               <button
@@ -264,7 +236,7 @@ export const LeaderboardPage: React.FC = () => {
             ))}
           </div>
 
-          {/* Contributor Rows / Empty State (matching projects-list styling) */}
+          {/* Contributor Rows / Empty State */}
           {loading ? (
             <div style={{
               background: 'var(--open-gray)',
@@ -292,136 +264,126 @@ export const LeaderboardPage: React.FC = () => {
             </div>
           ) : (
             <div className="projects-list">
-              {filteredContributors.map((c) => {
-                const isMe = user && (c.username.toLowerCase() === user.username.toLowerCase() || c.user_id === user.id);
-                return (
-                  <div
-                    key={c.user_id || c.username}
-                    className="project-row-card"
-                    style={{
-                      borderLeft: c.rank === 1 ? '3px solid #F5C040' : c.rank === 2 ? '3px solid silver' : c.rank === 3 ? '3px solid #CD7F32' : undefined,
-                      background: isMe ? 'rgba(8, 183, 79, 0.04)' : undefined
-                    }}
-                  >
-                    <div className="project-row-main">
-                      {/* Header Row */}
-                      <div className="project-row-header">
-                        <div className="project-row-title-group">
-                          <span style={{
-                            fontFamily: 'var(--font-mono)',
-                            fontWeight: 800,
-                            fontSize: c.rank <= 3 ? '1.15rem' : '0.92rem',
-                            minWidth: '28px',
-                            textAlign: 'center',
-                            color: c.rank === 1 ? '#F5C040' : c.rank === 2 ? 'silver' : c.rank === 3 ? '#CD7F32' : 'var(--text-muted)'
-                          }}>
-                            {c.medal || `#${c.rank}`}
-                          </span>
-
-                          <img
-                            src={c.avatar_url}
-                            alt={c.username}
-                            style={{
-                              width: '28px',
-                              height: '28px',
-                              borderRadius: '50%',
-                              border: `1.5px solid ${getTierColor(c.level)}`
-                            }}
-                          />
-
-                          <span className="project-row-title">
-                            {c.display_name}
-                          </span>
-
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                            @{c.username}
-                          </span>
-
-                          <span 
-                            className="tag-badge-pill"
-                            style={{
-                              borderColor: `${getTierColor(c.level)}66`,
-                              color: getTierColor(c.level),
-                              background: `${getTierColor(c.level)}15`,
-                              fontWeight: 700
-                            }}
-                          >
-                            LVL {c.level} • {c.title}
-                          </span>
-
-                          {c.is_verified_student && (
-                            <span className="verified-student-badge">
-                              <CheckCircle2 size={11} /> RIT Verified
-                            </span>
-                          )}
-
-                          {isMe && (
-                            <span style={{ fontSize: '0.68rem', background: 'var(--foss-mint)', color: '#0F1710', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
-                              YOU
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Right side stats & action */}
-                        <div className="project-row-actions">
-                          <div className="project-stats-inline">
-                            <span className="project-stat" title="Featured Projects">
-                              <Layers size={13} color="var(--text-secondary)" />
-                              <strong>{c.total_projects}</strong>
-                            </span>
-                            <span className="project-stat" title="GitHub Stars">
-                              <Star size={13} color="var(--byte-yellow)" />
-                              <strong>{c.total_stars}</strong>
-                            </span>
-                            <span className="project-stat" title="Peer Forks">
-                              <GitFork size={13} color="var(--pixel-blue)" />
-                              <span>{c.total_forks}</span>
-                            </span>
-                            <span className="project-stat" title="Total XP" style={{ color: getTierColor(c.level), fontWeight: 800 }}>
-                              <Zap size={13} color={getTierColor(c.level)} />
-                              <strong>{c.xp} XP</strong>
-                            </span>
-                          </div>
-
-                          <a
-                            href={`https://github.com/${c.username}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-secondary btn-sm project-view-btn"
-                            title="View GitHub Profile"
-                          >
-                            <span>Profile</span>
-                            <ExternalLink size={12} />
-                          </a>
-                        </div>
-                      </div>
-
-                      {/* Middle line: XP Progress Bar toward next tier */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
-                        <div style={{ flex: 1, maxWidth: '240px', height: '6px', background: 'var(--surface-border)', borderRadius: 'var(--radius-pill)', overflow: 'hidden' }}>
-                          <div style={{ width: `${c.progress}%`, height: '100%', background: getTierColor(c.level), borderRadius: 'var(--radius-pill)' }} />
-                        </div>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                          {c.progress}% to next tier ({c.min_xp} → {c.max_xp} XP)
+              {filteredContributors.map((c) => (
+                <div
+                  key={c.user_id || c.username}
+                  className="project-row-card"
+                  style={{
+                    borderLeft: c.rank === 1 ? '3px solid #F5C040' : c.rank === 2 ? '3px solid silver' : c.rank === 3 ? '3px solid #CD7F32' : undefined
+                  }}
+                >
+                  <div className="project-row-main">
+                    {/* Header Row */}
+                    <div className="project-row-header">
+                      <div className="project-row-title-group">
+                        <span style={{
+                          fontFamily: 'var(--font-mono)',
+                          fontWeight: 800,
+                          fontSize: c.rank <= 3 ? '1.15rem' : '0.92rem',
+                          minWidth: '28px',
+                          textAlign: 'center',
+                          color: c.rank === 1 ? '#F5C040' : c.rank === 2 ? 'silver' : c.rank === 3 ? '#CD7F32' : 'var(--text-muted)'
+                        }}>
+                          {c.medal || `#${c.rank}`}
                         </span>
+
+                        <img
+                          src={c.avatar_url}
+                          alt={c.username}
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            border: `1.5px solid ${getTierColor(c.level)}`
+                          }}
+                        />
+
+                        <span className="project-row-title">
+                          {c.display_name}
+                        </span>
+
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                          @{c.username}
+                        </span>
+
+                        <span 
+                          className="tag-badge-pill"
+                          style={{
+                            borderColor: `${getTierColor(c.level)}66`,
+                            color: getTierColor(c.level),
+                            background: `${getTierColor(c.level)}15`,
+                            fontWeight: 700
+                          }}
+                        >
+                          LVL {c.level} • {c.title}
+                        </span>
+
+                        {c.is_verified_student && (
+                          <span className="verified-student-badge">
+                            <CheckCircle2 size={11} /> RIT Verified
+                          </span>
+                        )}
                       </div>
 
-                      {/* Bottom line: Badges */}
-                      {c.badges && c.badges.length > 0 && (
-                        <div className="project-row-footer" style={{ marginTop: '4px' }}>
-                          <div className="tags-row-inline">
-                            {c.badges.map(b => (
-                              <span key={b.id} className="tag-badge" style={{ fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                <span>{b.icon}</span> {b.name}
-                              </span>
-                            ))}
-                          </div>
+                      {/* Right side stats & action */}
+                      <div className="project-row-actions">
+                        <div className="project-stats-inline">
+                          <span className="project-stat" title="Featured Projects">
+                            <Layers size={13} color="var(--text-secondary)" />
+                            <strong>{c.total_projects}</strong>
+                          </span>
+                          <span className="project-stat" title="GitHub Stars">
+                            <Star size={13} color="var(--byte-yellow)" />
+                            <strong>{c.total_stars}</strong>
+                          </span>
+                          <span className="project-stat" title="Peer Forks">
+                            <GitFork size={13} color="var(--pixel-blue)" />
+                            <span>{c.total_forks}</span>
+                          </span>
+                          <span className="project-stat" title="Total XP" style={{ color: getTierColor(c.level), fontWeight: 800 }}>
+                            <Zap size={13} color={getTierColor(c.level)} />
+                            <strong>{c.xp} XP</strong>
+                          </span>
                         </div>
-                      )}
+
+                        <a
+                          href={`https://github.com/${c.username}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-secondary btn-sm project-view-btn"
+                          title="View GitHub Profile"
+                        >
+                          <span>Profile</span>
+                          <ExternalLink size={12} />
+                        </a>
+                      </div>
                     </div>
+
+                    {/* Middle line: XP Progress Bar toward next tier */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '2px' }}>
+                      <div style={{ flex: 1, maxWidth: '240px', height: '6px', background: 'var(--surface-border)', borderRadius: 'var(--radius-pill)', overflow: 'hidden' }}>
+                        <div style={{ width: `${c.progress}%`, height: '100%', background: getTierColor(c.level), borderRadius: 'var(--radius-pill)' }} />
+                      </div>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                        {c.progress}% to next tier ({c.min_xp} → {c.max_xp} XP)
+                      </span>
+                    </div>
+
+                    {/* Bottom line: Badges */}
+                    {c.badges && c.badges.length > 0 && (
+                      <div className="project-row-footer" style={{ marginTop: '4px' }}>
+                        <div className="tags-row-inline">
+                          {c.badges.map(b => (
+                            <span key={b.id} className="tag-badge" style={{ fontSize: '0.72rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <span>{b.icon}</span> {b.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </section>

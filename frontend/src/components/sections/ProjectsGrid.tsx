@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Project } from '../../types';
-import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Star, GitFork, AlertCircle, Plus, ExternalLink, ArrowRight, Search, SlidersHorizontal, CheckCircle2, RefreshCw, Trash2 } from 'lucide-react';
-import { GithubIcon } from '../ui/Icons';
+import { Star, GitFork, AlertCircle, Plus, ExternalLink, ArrowRight, Search, SlidersHorizontal, CheckCircle2, RefreshCw } from 'lucide-react';
+import { GitHubIcon } from '../ui/GitHubIcon';
 
 interface ProjectsGridProps {
   onOpenSubmitProject: () => void;
@@ -36,7 +35,6 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
   const [lastSynced, setLastSynced] = useState<string | null>(() => {
     return localStorage.getItem('foss_projects_last_synced') || null;
   });
-  const { user } = useAuth();
   const { showToast } = useToast();
 
   const techFilters = ['all', 'React', 'TypeScript', 'FastAPI', 'Python', 'Go', 'Tailwind'];
@@ -47,19 +45,6 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
       setProjects(data);
     } catch {
       // Handled by api client fallback
-    }
-  };
-
-  const handleDeleteProject = async (projectId: string, projectName: string) => {
-    if (!window.confirm(`Are you sure you want to remove "${projectName}" from the campus radar?`)) {
-      return;
-    }
-    try {
-      await api.deleteProject(projectId);
-      setProjects(prev => prev.filter(p => p.id !== projectId));
-      showToast(`Project "${projectName}" was removed from the campus radar.`, 'info');
-    } catch (err: any) {
-      showToast(err.message || 'Failed to delete project', 'error');
     }
   };
 
@@ -209,7 +194,7 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
                   {/* Top Line: Name, Badges, Stats & Repo Button */}
                   <div className="project-row-header">
                     <div className="project-row-title-group">
-                      <GithubIcon size={17} color="var(--foss-mint)" style={{ flexShrink: 0 }} />
+                      <GitHubIcon size={17} color="var(--foss-mint)" style={{ flexShrink: 0 }} />
                       <a 
                         href={proj.repo_url} 
                         target="_blank" 
@@ -255,23 +240,6 @@ export const ProjectsGrid: React.FC<ProjectsGridProps> = ({
                         <span>Repo</span>
                         <ExternalLink size={12} />
                       </a>
-
-                      {user && (user.role === 'admin' || user.username.toLowerCase() === proj.submitted_by_username?.toLowerCase()) && (
-                        <button
-                          onClick={() => handleDeleteProject(proj.id, proj.name)}
-                          className="btn btn-secondary btn-sm"
-                          style={{
-                            color: 'var(--byte-red, #E84A36)',
-                            borderColor: 'rgba(232, 74, 54, 0.25)',
-                            padding: '0 8px',
-                            height: '30px'
-                          }}
-                          title="Delete this project from the campus radar"
-                          aria-label={`Delete ${proj.name}`}
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      )}
                     </div>
                   </div>
 

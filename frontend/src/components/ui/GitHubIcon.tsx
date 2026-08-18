@@ -2,11 +2,12 @@ import React from 'react';
 
 interface GitHubIconProps {
   size?: number;
+  color?: string;
   className?: string;
   style?: React.CSSProperties;
 }
 
-export const GitHubIcon: React.FC<GitHubIconProps> = ({ size = 18, className = '', style = {} }) => {
+export const GitHubIcon: React.FC<GitHubIconProps> = ({ size = 18, color, className = '', style = {} }) => {
   return (
     <svg
       width={size}
@@ -14,7 +15,7 @@ export const GitHubIcon: React.FC<GitHubIconProps> = ({ size = 18, className = '
       viewBox="0 0 24 24"
       fill="currentColor"
       className={className}
-      style={{ display: 'inline-block', verticalAlign: 'middle', ...style }}
+      style={{ display: 'inline-block', verticalAlign: 'middle', ...(color ? { color } : {}), ...style }}
     >
       <path
         fillRule="evenodd"

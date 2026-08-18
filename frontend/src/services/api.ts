@@ -1,16 +1,8 @@
-import { Event, EventRSVP, Project, ProjectCreate, Member, MemberCreate, ClubStats, AuthResponse, User, LeaderboardResponse } from '../types';
+import { Event, EventRSVP, Project, ClubStats, LeaderboardResponse } from '../types';
 import GITOPS_PROJECTS from '../data/projects.json';
 import GITOPS_LEADERBOARD from '../data/leaderboard.json';
 
 const API_BASE = '/api';
-
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem('foss_auth_token');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-  };
-}
 
 const FALLBACK_EVENTS: Event[] = [
   {
@@ -59,88 +51,14 @@ const FALLBACK_EVENTS: Event[] = [
 ];
 
 const FALLBACK_STATS: ClubStats = {
-  active_members: 42,
-  projects_built: 3,
+  active_members: 12,
+  projects_built: 5,
   workshops_hosted: 20,
-  open_pull_requests: 12,
+  open_pull_requests: 3,
   lines_of_foss_code: 'Genesis'
 };
 
 export const api = {
-  // --- Auth APIs ---
-  async getAuthConfig(): Promise<{ github_client_id: string; is_oauth_configured: boolean }> {
-    try {
-      const res = await fetch(`${API_BASE}/auth/config`);
-      if (!res.ok) throw new Error();
-      return await res.json();
-    } catch {
-      return { github_client_id: '', is_oauth_configured: false };
-    }
-  },
-
-  async loginWithGitHub(code: string, redirectUri?: string): Promise<AuthResponse> {
-    const res = await fetch(`${API_BASE}/auth/github`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        code, 
-        redirect_uri: redirectUri || `${window.location.origin}/auth/callback` 
-      })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'GitHub authentication failed' }));
-      throw new Error(err.detail || 'GitHub authentication failed');
-    }
-    return await res.json();
-  },
-
-  async devLogin(username: string = 'rit-developer'): Promise<AuthResponse> {
-    const res = await fetch(`${API_BASE}/auth/dev-login?username=${encodeURIComponent(username)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Developer login failed' }));
-      throw new Error(err.detail || 'Developer login failed');
-    }
-    return await res.json();
-  },
-
-  async getMe(): Promise<User> {
-    const res = await fetch(`${API_BASE}/auth/me`, {
-      headers: getAuthHeaders()
-    });
-    if (!res.ok) throw new Error('Unauthenticated');
-    return await res.json();
-  },
-
-  async verifyStudent(collegeEmail: string): Promise<User> {
-    const res = await fetch(`${API_BASE}/auth/verify-student`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ college_email: collegeEmail })
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Failed to verify college email' }));
-      throw new Error(err.detail || 'Failed to verify college email');
-    }
-    return await res.json();
-  },
-
-  async deleteAccount(): Promise<{ status: string; message: string }> {
-    const res = await fetch(`${API_BASE}/auth/me`, {
-      method: 'DELETE',
-      headers: getAuthHeaders()
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Failed to delete account' }));
-      throw new Error(err.detail || 'Failed to delete account');
-    }
-    localStorage.removeItem('foss_auth_token');
-    localStorage.removeItem('foss_user_cache');
-    return await res.json();
-  },
-
   // --- Events APIs ---
   async getEvents(): Promise<Event[]> {
     try {
@@ -152,29 +70,31 @@ export const api = {
     }
   },
 
-  async syncTinkerHub(): Promise<{ success: boolean; message: string; synced_total: number; events: Event[] }> {
-    const res = await fetch(`${API_BASE}/events/sync-tinkerhub`, {
-      method: 'POST',
-      headers: getAuthHeaders()
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Failed to sync with TinkerHub' }));
-      throw new Error(err.detail || 'Failed to sync with TinkerHub');
+  async syncTinkerhubEvents(): Promise<Event[]> {
+    try {
+      const res = await fetch(`${API_BASE}/events/sync-tinkerhub`, { method: 'POST' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch {
+      return FALLBACK_EVENTS;
     }
-    return await res.json();
   },
 
-  async rsvpEvent(eventId: string, rsvpData: EventRSVP): Promise<{ success: boolean; message: string }> {
-    const res = await fetch(`${API_BASE}/events/${eventId}/rsvp`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(rsvpData)
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Failed to RSVP' }));
-      throw new Error(err.detail || 'Failed to RSVP');
+  async rsvpEvent(_eventId: string, rsvpData: EventRSVP): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/events/rsvp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rsvpData)
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Handled by client
     }
-    return await res.json();
+    return {
+      success: true,
+      message: `RSVP confirmed for ${rsvpData.name}! See you at the workshop.`
+    };
   },
 
   // --- Projects APIs (GitOps Powered) ---
@@ -193,10 +113,9 @@ export const api = {
         return data;
       }
     } catch {
-      // Handled by GitOps fallback
+      // Handled by GitOps fallback below
     }
 
-    // GitOps fallback
     const cached = localStorage.getItem('foss_projects_cache');
     let baseList: Project[] = cached ? JSON.parse(cached) : (GITOPS_PROJECTS as unknown as Project[]);
 
@@ -236,10 +155,7 @@ export const api = {
 
   async syncProjects(): Promise<{ success: boolean; message: string; projects: Project[] }> {
     try {
-      const res = await fetch(`${API_BASE}/projects/sync`, {
-        method: 'POST',
-        headers: getAuthHeaders()
-      });
+      const res = await fetch(`${API_BASE}/projects/sync`, { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         if (data.projects) {
@@ -259,62 +175,7 @@ export const api = {
     };
   },
 
-  async syncSingleProject(projectId: string): Promise<Project> {
-    try {
-      const res = await fetch(`${API_BASE}/projects/${projectId}/sync`, {
-        method: 'POST',
-        headers: getAuthHeaders()
-      });
-      if (res.ok) return await res.json();
-    } catch {
-      // Handled by client
-    }
-    const projects = await this.getProjects();
-    return projects.find(p => p.id === projectId) || projects[0];
-  },
-
-  async submitProject(projectData: ProjectCreate): Promise<Project> {
-    const res = await fetch(`${API_BASE}/projects`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(projectData)
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Failed to submit project' }));
-      throw new Error(err.detail || 'Failed to submit project');
-    }
-    return await res.json();
-  },
-
-  async deleteProject(projectId: string): Promise<{ success: boolean; message: string }> {
-    try {
-      const res = await fetch(`${API_BASE}/projects/${projectId}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      });
-      if (res.ok) return await res.json();
-    } catch {
-      // Client cache removal
-    }
-    const cached = localStorage.getItem('foss_projects_cache');
-    if (cached) {
-      const list: Project[] = JSON.parse(cached);
-      localStorage.setItem('foss_projects_cache', JSON.stringify(list.filter(p => p.id !== projectId)));
-    }
-    return { success: true, message: 'Project removed from local view' };
-  },
-
-  // --- Members & Stats APIs ---
-  async getMembers(): Promise<Member[]> {
-    try {
-      const res = await fetch(`${API_BASE}/members`);
-      if (res.ok) return await res.json();
-    } catch {
-      // Handled by fallback
-    }
-    return [];
-  },
-
+  // --- Stats APIs ---
   async getStats(): Promise<ClubStats> {
     try {
       const res = await fetch(`${API_BASE}/members/stats`);
@@ -323,19 +184,6 @@ export const api = {
       // Handled by fallback
     }
     return FALLBACK_STATS;
-  },
-
-  async joinClub(memberData: MemberCreate): Promise<Member> {
-    const res = await fetch(`${API_BASE}/members/join`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(memberData)
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Failed to register membership' }));
-      throw new Error(err.detail || 'Failed to register membership');
-    }
-    return await res.json();
   },
 
   // --- Leaderboard & XP APIs (GitOps Powered) ---

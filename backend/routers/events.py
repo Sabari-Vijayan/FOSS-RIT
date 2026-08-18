@@ -1,8 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
-from db.session import get_db
-from db.models import EventRSVPDB
+from fastapi import APIRouter, HTTPException
 from schemas.event import Event, EventRSVP, RSVPResponse
 from services.tinkerhub_service import scrape_tinkerhub_events, clear_events_cache
 
@@ -10,7 +7,7 @@ router = APIRouter(prefix="/api/events", tags=["Events & Workshops"])
 
 @router.get("", response_model=List[Event])
 async def get_events(mode: Optional[str] = None):
-    """Retrieve live TinkerHub x FOSS Club workshops and events."""
+    """Retrieve live TinkerHub x FOSS Club workshops and events (stateless scraper)."""
     events = await scrape_tinkerhub_events()
     
     if mode and mode.lower() != "all":
@@ -35,20 +32,11 @@ async def get_event_by_id(event_id: str):
     raise HTTPException(status_code=404, detail="Event not found.")
 
 @router.post("/rsvp", response_model=RSVPResponse)
-def rsvp_event(rsvp: EventRSVP, db: Session = Depends(get_db)):
-    """RSVP for a campus community workshop."""
-    new_rsvp = EventRSVPDB(
-        event_id=rsvp.event_id,
-        name=rsvp.name,
-        email=rsvp.email,
-        college_id=rsvp.college_id
-    )
-    db.add(new_rsvp)
-    db.commit()
-    db.refresh(new_rsvp)
-
+def rsvp_event(rsvp: EventRSVP):
+    """Stateless RSVP confirmation for a campus community workshop."""
     return RSVPResponse(
-        status="confirmed",
-        message=f"Thank you {rsvp.name}! Your RSVP has been confirmed.",
-        rsvp_id=new_rsvp.id
+        status="success",
+        message=f"RSVP confirmed for {rsvp.name}! See you at the workshop.",
+        event_id=rsvp.event_id,
+        email=rsvp.email
     )
