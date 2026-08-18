@@ -116,8 +116,19 @@ export const api = {
       // Handled by GitOps fallback below
     }
 
+    const gitopsList = (GITOPS_PROJECTS as unknown as Project[]) || [];
+    let baseList: Project[] = gitopsList;
     const cached = localStorage.getItem('foss_projects_cache');
-    let baseList: Project[] = cached ? JSON.parse(cached) : (GITOPS_PROJECTS as unknown as Project[]);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length >= gitopsList.length) {
+          baseList = parsed;
+        }
+      } catch {
+        baseList = gitopsList;
+      }
+    }
 
     if (forceSync) {
       baseList = await Promise.all(
