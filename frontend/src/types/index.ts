@@ -23,9 +23,9 @@ export interface ContributorRank {
   display_name: string;
   avatar_url: string;
   is_verified_student: boolean;
-  role: string;
+  role?: string;
   rank: number;
-  medal?: '🥇' | '🥈' | '🥉' | null;
+  medal?: string | null;
   xp: number;
   level: number;
   title: string;
@@ -35,12 +35,13 @@ export interface ContributorRank {
   total_projects: number;
   total_stars: number;
   total_forks: number;
-  top_projects: string[];
+  top_projects?: string[];
   badges: DeveloperBadge[];
   joined_at?: string;
 }
 
 export interface LeaderboardResponse {
+  status?: string;
   timeframe: 'all_time' | 'monthly';
   total_contributors: number;
   contributors: ContributorRank[];

@@ -10,7 +10,7 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { RsvpModal } from './components/modals/RsvpModal';
-import { ProjectModal } from './components/modals/ProjectModal';
+import { SubmitProjectGuideModal } from './components/modals/SubmitProjectGuideModal';
 import { GridBackground } from './components/ui/GridBackground';
 import { Event } from './types';
 
@@ -109,10 +109,9 @@ export const App: React.FC = () => {
             onSuccess={() => setRefreshKey(prev => prev + 1)}
           />
 
-          <ProjectModal 
+          <SubmitProjectGuideModal 
             isOpen={isProjectOpen} 
             onClose={() => setIsProjectOpen(false)}
-            onSuccess={() => setRefreshKey(prev => prev + 1)}
           />
         </BrowserRouter>
       </VibeProvider>

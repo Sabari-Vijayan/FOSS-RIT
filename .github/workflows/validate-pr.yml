@@ -1,0 +1,59 @@
+name: Validate Project Submission PR
+
+on:
+  pull_request:
+    paths:
+      - 'content/projects/**'
+
+jobs:
+  validate:
+    name: Check Markdown Frontmatter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate Markdown Files
+        run: |
+          python -c "
+          import sys, re
+          from pathlib import Path
+
+          content_dir = Path('content/projects')
+          md_files = [f for f in content_dir.glob('*.md') if f.name != '_template.md']
+          
+          if not md_files:
+              print('No project markdown files found!')
+              sys.exit(1)
+
+          errors = []
+          for f in md_files:
+              text = f.read_text(encoding='utf-8')
+              if not text.startswith('---'):
+                  errors.append(f'{f.name}: Missing frontmatter opening delimiter (---)')
+                  continue
+              
+              if 'name:' not in text:
+                  errors.append(f'{f.name}: Missing required field `name:`')
+              if 'repo_url:' not in text:
+                  errors.append(f'{f.name}: Missing required field `repo_url:`')
+              if 'author:' not in text:
+                  errors.append(f'{f.name}: Missing required field `author:`')
+              
+              match = re.search(r'repo_url:\s*[\"\']?(https://github\.com/[^/]+/[^/\s\"\']+)', text)
+              if not match:
+                  errors.append(f'{f.name}: Invalid or missing GitHub `repo_url` (must be https://github.com/owner/repo)')
+
+          if errors:
+              print('Validation Errors Found:')
+              for e in errors:
+                  print(f'  ❌ {e}')
+              sys.exit(1)
+
+          print(f'✅ All {len(md_files)} project markdown files passed validation!')
+          "

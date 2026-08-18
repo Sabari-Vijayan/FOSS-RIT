@@ -1,0 +1,101 @@
+[
+  {
+    "id": "proj-foss-club-website",
+    "name": "FOSS Club Website",
+    "description": "Official web platform and campus open-source radar for FOSS Club at RIT Kottayam.",
+    "repo_url": "https://github.com/vertigotalks7/FOSS-RIT",
+    "tech_stack": [
+      "React",
+      "TypeScript",
+      "FastAPI",
+      "Python",
+      "Tailwind"
+    ],
+    "stars": 4,
+    "forks": 0,
+    "open_issues": 0,
+    "is_verified_student": true,
+    "submitted_by_username": "vertigotalks7",
+    "submitted_by_name": "Vertigo Talks",
+    "batch": "2026",
+    "featured": true
+  },
+  {
+    "id": "proj-fastapi-production-boilerplate",
+    "name": "FastAPI Production Starter",
+    "description": "Production-ready async REST API boilerplate with JWT authentication and PostgreSQL pooling.",
+    "repo_url": "https://github.com/foss-rit/fastapi-production-boilerplate",
+    "tech_stack": [
+      "Python",
+      "FastAPI",
+      "PostgreSQL",
+      "Docker"
+    ],
+    "stars": 0,
+    "forks": 0,
+    "open_issues": 0,
+    "is_verified_student": true,
+    "submitted_by_username": "vertigotalks7",
+    "submitted_by_name": "Vertigo Talks",
+    "batch": "2026",
+    "featured": true
+  },
+  {
+    "id": "proj-ktu-syllabus-cli",
+    "name": "KTU Syllabus CLI",
+    "description": "Ultra-fast command-line tool to query, download, and search KTU B.Tech scheme syllabuses and textbooks offline.",
+    "repo_url": "https://github.com/foss-rit/ktu-syllabus-cli",
+    "tech_stack": [
+      "Go",
+      "Rust",
+      "CLI"
+    ],
+    "stars": 0,
+    "forks": 0,
+    "open_issues": 0,
+    "is_verified_student": true,
+    "submitted_by_username": "rahul-s-dev",
+    "submitted_by_name": "Rahul S",
+    "batch": "2027",
+    "featured": true
+  },
+  {
+    "id": "proj-rit-attendance-calculator",
+    "name": "RIT Attendance & SGPA Calculator",
+    "description": "Cross-platform mobile tool for KTU university attendance tracking, bunk calculations, and SGPA forecasting.",
+    "repo_url": "https://github.com/foss-rit/rit-attendance-calculator",
+    "tech_stack": [
+      "Flutter",
+      "Dart",
+      "Python"
+    ],
+    "stars": 0,
+    "forks": 0,
+    "open_issues": 0,
+    "is_verified_student": true,
+    "submitted_by_username": "kiran-kumar-rit",
+    "submitted_by_name": "Kiran Kumar",
+    "batch": "2025",
+    "featured": true
+  },
+  {
+    "id": "proj-smart-parking-radar",
+    "name": "Smart Campus Parking Radar",
+    "description": "Computer vision and IoT sensor system tracking real-time parking space occupancy at RIT Kottayam.",
+    "repo_url": "https://github.com/foss-rit/smart-parking-radar",
+    "tech_stack": [
+      "Go",
+      "OpenCV",
+      "RaspberryPi",
+      "React"
+    ],
+    "stars": 0,
+    "forks": 0,
+    "open_issues": 0,
+    "is_verified_student": true,
+    "submitted_by_username": "dev-ananya",
+    "submitted_by_name": "Ananya Nair",
+    "batch": "2025",
+    "featured": true
+  }
+]

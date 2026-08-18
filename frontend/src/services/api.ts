@@ -1,4 +1,6 @@
-import { Event, EventRSVP, Project, ProjectCreate, Member, MemberCreate, ClubStats, AuthResponse, User, LeaderboardResponse, ContributorRank } from '../types';
+import { Event, EventRSVP, Project, ProjectCreate, Member, MemberCreate, ClubStats, AuthResponse, User, LeaderboardResponse } from '../types';
+import GITOPS_PROJECTS from '../data/projects.json';
+import GITOPS_LEADERBOARD from '../data/leaderboard.json';
 
 const API_BASE = '/api';
 
@@ -53,42 +55,6 @@ const FALLBACK_EVENTS: Event[] = [
     source: 'tinkerhub',
     event_type: 'Hackathon',
     event_url: 'https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor'
-  }
-];
-
-const FALLBACK_PROJECTS: Project[] = [
-  {
-    id: 'rit-campushub',
-    name: 'rit-campushub',
-    description: 'Open-source student notice portal and KTU academic notes directory for RIT Kottayam.',
-    repo_url: 'https://github.com/foss-rit/rit-campushub',
-    tech_stack: ['React', 'TypeScript', 'FastAPI', 'Python'],
-    stars: 28,
-    forks: 8,
-    open_issues: 4,
-    submitted_by_username: 'foss-rit-core'
-  },
-  {
-    id: 'ktu-calculator',
-    name: 'ktu-calculator',
-    description: 'Fast, ad-free open-source SGPA/CGPA grade and credit calculator for KTU schemes.',
-    repo_url: 'https://github.com/foss-rit/ktu-calculator',
-    tech_stack: ['TypeScript', 'React', 'Tailwind'],
-    stars: 42,
-    forks: 14,
-    open_issues: 3,
-    submitted_by_username: 'foss-rit-core'
-  },
-  {
-    id: 'tinker-mesh',
-    name: 'tinker-mesh',
-    description: 'Local LAN peer-to-peer file and resource sharing utility across RIT hostel networks.',
-    repo_url: 'https://github.com/foss-rit/tinker-mesh',
-    tech_stack: ['Go', 'WebSockets', 'SQLite'],
-    stars: 19,
-    forks: 5,
-    open_issues: 5,
-    submitted_by_username: 'foss-rit-core'
   }
 ];
 
@@ -211,7 +177,7 @@ export const api = {
     return await res.json();
   },
 
-  // --- Projects APIs ---
+  // --- Projects APIs (GitOps Powered) ---
   async getProjects(tech?: string, forceSync?: boolean): Promise<Project[]> {
     try {
       const queryParams = new URLSearchParams();
@@ -221,73 +187,22 @@ export const api = {
       const qs = queryParams.toString();
       const url = qs ? `${API_BASE}/projects?${qs}` : `${API_BASE}/projects`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: Project[] = await res.json();
-      // Cache latest project stats locally
-      localStorage.setItem('foss_projects_cache', JSON.stringify(data));
-      return data;
-    } catch {
-      // Check for locally cached projects first
-      const cached = localStorage.getItem('foss_projects_cache');
-      let baseList: Project[] = cached ? JSON.parse(cached) : FALLBACK_PROJECTS;
-
-      // If forceSync is requested and backend is offline, sync directly with GitHub public API
-      if (forceSync) {
-        baseList = await Promise.all(
-          baseList.map(async (p) => {
-            try {
-              const match = p.repo_url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
-              if (match) {
-                const owner = match[1];
-                const repo = match[2].replace(/\.git$/, '');
-                const ghRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
-                if (ghRes.ok) {
-                  const ghData = await ghRes.json();
-                  return {
-                    ...p,
-                    stars: ghData.stargazers_count ?? p.stars,
-                    forks: ghData.forks_count ?? p.forks,
-                    open_issues: ghData.open_issues_count ?? p.open_issues,
-                    description: ghData.description || p.description
-                  };
-                }
-              }
-            } catch (err) {
-              console.warn(`[Client GitHub Sync] Failed to fetch ${p.repo_url}:`, err);
-            }
-            return p;
-          })
-        );
-        localStorage.setItem('foss_projects_cache', JSON.stringify(baseList));
+      if (res.ok) {
+        const data: Project[] = await res.json();
+        localStorage.setItem('foss_projects_cache', JSON.stringify(data));
+        return data;
       }
-
-      return tech && tech !== 'all'
-        ? baseList.filter(p => p.tech_stack.some(t => t.toLowerCase() === tech.toLowerCase()))
-        : baseList;
-    }
-  },
-
-  async syncProjects(): Promise<{ success: boolean; message: string; projects: Project[] }> {
-    try {
-      const res = await fetch(`${API_BASE}/projects/sync`, {
-        method: 'POST',
-        headers: getAuthHeaders()
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const projects: Project[] = await res.json();
-      localStorage.setItem('foss_projects_cache', JSON.stringify(projects));
-      return {
-        success: true,
-        message: `Successfully synchronized live metrics for ${projects.length} repositories from GitHub!`,
-        projects
-      };
     } catch {
-      // Fallback: Direct GitHub API query from browser
-      const cached = localStorage.getItem('foss_projects_cache');
-      let list: Project[] = cached ? JSON.parse(cached) : FALLBACK_PROJECTS;
+      // Handled by GitOps fallback
+    }
 
-      const synced = await Promise.all(
-        list.map(async (p) => {
+    // GitOps fallback
+    const cached = localStorage.getItem('foss_projects_cache');
+    let baseList: Project[] = cached ? JSON.parse(cached) : (GITOPS_PROJECTS as unknown as Project[]);
+
+    if (forceSync) {
+      baseList = await Promise.all(
+        baseList.map(async (p) => {
           try {
             const match = p.repo_url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
             if (match) {
@@ -306,31 +221,56 @@ export const api = {
               }
             }
           } catch (err) {
-            console.warn(`[Client GitHub Sync] ${p.name}:`, err);
+            console.warn(`[Client GitHub Sync] Notice for ${p.repo_url}:`, err);
           }
           return p;
         })
       );
-
-      localStorage.setItem('foss_projects_cache', JSON.stringify(synced));
-      return {
-        success: true,
-        message: `Synced ${synced.length} repositories directly from GitHub API.`,
-        projects: synced
-      };
+      localStorage.setItem('foss_projects_cache', JSON.stringify(baseList));
     }
+
+    return tech && tech !== 'all'
+      ? baseList.filter(p => p.tech_stack.some(t => t.toLowerCase() === tech.toLowerCase()))
+      : baseList;
+  },
+
+  async syncProjects(): Promise<{ success: boolean; message: string; projects: Project[] }> {
+    try {
+      const res = await fetch(`${API_BASE}/projects/sync`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.projects) {
+          localStorage.setItem('foss_projects_cache', JSON.stringify(data.projects));
+        }
+        return data;
+      }
+    } catch {
+      // Fallback: sync directly with GitHub public API
+    }
+
+    const updated = await this.getProjects(undefined, true);
+    return {
+      success: true,
+      message: `Synchronized ${updated.length} repositories directly from GitHub.`,
+      projects: updated
+    };
   },
 
   async syncSingleProject(projectId: string): Promise<Project> {
-    const res = await fetch(`${API_BASE}/projects/${projectId}/sync`, {
-      method: 'POST',
-      headers: getAuthHeaders()
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Failed to sync project stats' }));
-      throw new Error(err.detail || 'Failed to sync project stats');
+    try {
+      const res = await fetch(`${API_BASE}/projects/${projectId}/sync`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Handled by client
     }
-    return await res.json();
+    const projects = await this.getProjects();
+    return projects.find(p => p.id === projectId) || projects[0];
   },
 
   async submitProject(projectData: ProjectCreate): Promise<Project> {
@@ -347,36 +287,42 @@ export const api = {
   },
 
   async deleteProject(projectId: string): Promise<{ success: boolean; message: string }> {
-    const res = await fetch(`${API_BASE}/projects/${projectId}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders()
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'Failed to delete project' }));
-      throw new Error(err.detail || 'Failed to delete project');
+    try {
+      const res = await fetch(`${API_BASE}/projects/${projectId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      // Client cache removal
     }
-    return await res.json();
+    const cached = localStorage.getItem('foss_projects_cache');
+    if (cached) {
+      const list: Project[] = JSON.parse(cached);
+      localStorage.setItem('foss_projects_cache', JSON.stringify(list.filter(p => p.id !== projectId)));
+    }
+    return { success: true, message: 'Project removed from local view' };
   },
 
   // --- Members & Stats APIs ---
   async getMembers(): Promise<Member[]> {
     try {
       const res = await fetch(`${API_BASE}/members`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+      if (res.ok) return await res.json();
     } catch {
-      return [];
+      // Handled by fallback
     }
+    return [];
   },
 
   async getStats(): Promise<ClubStats> {
     try {
       const res = await fetch(`${API_BASE}/members/stats`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+      if (res.ok) return await res.json();
     } catch {
-      return FALLBACK_STATS;
+      // Handled by fallback
     }
+    return FALLBACK_STATS;
   },
 
   async joinClub(memberData: MemberCreate): Promise<Member> {
@@ -392,113 +338,29 @@ export const api = {
     return await res.json();
   },
 
-  // --- Leaderboard & XP APIs ---
+  // --- Leaderboard & XP APIs (GitOps Powered) ---
   async getLeaderboard(timeframe: 'all_time' | 'monthly' = 'all_time'): Promise<LeaderboardResponse> {
     try {
       const res = await fetch(`${API_BASE}/leaderboard?timeframe=${timeframe}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+      if (res.ok) {
+        return await res.json();
+      }
     } catch {
-      // Fallback: Compute dynamic Boot.dev RPG stats from cached/fallback projects
-      const cached = localStorage.getItem('foss_projects_cache');
-      const projects: Project[] = cached ? JSON.parse(cached) : FALLBACK_PROJECTS;
-
-      const userMap: Record<string, { projects: Project[]; is_verified: boolean }> = {};
-
-      projects.forEach(p => {
-        const username = p.submitted_by_username || (p.repo_url.match(/github\.com\/([^\/]+)/)?.[1] ?? 'rit-builder');
-        if (!userMap[username]) {
-          userMap[username] = { projects: [], is_verified: p.is_verified_student ?? true };
-        }
-        userMap[username].projects.push(p);
-      });
-
-      const fallbackUsers = Object.entries(userMap).map(([username, data], index) => {
-        const userProjects = data.projects;
-        const totalStars = userProjects.reduce((acc, p) => acc + p.stars, 0);
-        const totalForks = userProjects.reduce((acc, p) => acc + p.forks, 0);
-
-        let xp = data.is_verified ? 50 : 0;
-        xp += userProjects.length >= 1 ? 100 : 0;
-        xp += userProjects.length >= 2 ? 75 : 0;
-        xp += userProjects.length >= 3 ? 75 : 0;
-        xp += totalForks * 20;
-        xp += userProjects.reduce((acc, p) => acc + Math.min(100, p.stars * 5), 0);
-
-        const techSet = new Set(userProjects.flatMap(p => p.tech_stack.map(t => t.toLowerCase())));
-        xp += Math.min(60, techSet.size * 15);
-
-        let level = 1;
-        let title = "Script Tinkerer";
-        let min_xp = 0;
-        let max_xp = 100;
-
-        if (xp >= 1500) {
-          level = 5;
-          title = "Kernel Overlord";
-          min_xp = 1500;
-          max_xp = 3000;
-        } else if (xp >= 700) {
-          level = 4;
-          title = "Systems Architect";
-          min_xp = 700;
-          max_xp = 1500;
-        } else if (xp >= 300) {
-          level = 3;
-          title = "Byte Craftsman";
-          min_xp = 300;
-          max_xp = 700;
-        } else if (xp >= 100) {
-          level = 2;
-          title = "Open Source Novice";
-          min_xp = 100;
-          max_xp = 300;
-        }
-
-        const progress = Math.min(100, Math.round(((xp - min_xp) / (max_xp - min_xp)) * 100));
-
-        const badges = [];
-        if (data.is_verified) badges.push({ id: "verified_rit", name: "Campus Verified", icon: "🎓", color: "#08B74F" });
-        if (userProjects.length >= 1) badges.push({ id: "first_ship", name: "First Ship", icon: "🚀", color: "#2B7FFF" });
-        if (userProjects.length >= 3) badges.push({ id: "trilogy", name: "The Trilogy", icon: "🔱", color: "#F5C040" });
-        if (totalForks >= 3) badges.push({ id: "peer_forked", name: "Peer Forked", icon: "🍴", color: "#A855F7" });
-        if (techSet.size >= 3) badges.push({ id: "polyglot", name: "Polyglot", icon: "⚡", color: "#EC4899" });
-        if (totalStars >= 10) badges.push({ id: "star_hunter", name: "Star Hunter", icon: "⭐", color: "#EAB308" });
-
-        return {
-          user_id: `usr-${index + 1}`,
-          username: username,
-          display_name: username.charAt(0).toUpperCase() + username.slice(1),
-          avatar_url: `https://github.com/${username}.png`,
-          is_verified_student: data.is_verified,
-          role: 'member',
-          xp,
-          level,
-          title,
-          min_xp,
-          max_xp,
-          progress,
-          total_projects: userProjects.length,
-          total_stars: totalStars,
-          total_forks: totalForks,
-          top_projects: userProjects.map(p => p.name).slice(0, 3),
-          badges
-        };
-      });
-
-      fallbackUsers.sort((a, b) => b.xp - a.xp);
-
-      const ranked: ContributorRank[] = fallbackUsers.map((u, idx) => ({
-        ...u,
-        rank: idx + 1,
-        medal: idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : null
-      }));
-
-      return {
-        timeframe,
-        total_contributors: ranked.length,
-        contributors: ranked
-      };
+      // Handled by GitOps fallback
     }
+
+    if (GITOPS_LEADERBOARD && (GITOPS_LEADERBOARD as any).contributors) {
+      return {
+        ...(GITOPS_LEADERBOARD as any),
+        timeframe
+      } as LeaderboardResponse;
+    }
+
+    return {
+      status: 'success',
+      timeframe,
+      total_contributors: 0,
+      contributors: []
+    };
   }
 };
