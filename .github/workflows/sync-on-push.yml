@@ -1,0 +1,41 @@
+name: Auto-Sync GitOps Feeds on Push
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'content/**'
+      - 'scripts/sync_data.py'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run GitOps Telemetry & Scraper Engine
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/sync_data.py
+
+      - name: Auto-Commit & Push Updated Feeds
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frontend/src/data/ frontend/public/data/
+          if git diff --staged --quiet; then
+            echo "No feed changes to commit."
+          else
+            git commit -m "chore(gitops): auto-sync projects, leaderboard & events feeds [skip ci]"
+            git push
+          fi
