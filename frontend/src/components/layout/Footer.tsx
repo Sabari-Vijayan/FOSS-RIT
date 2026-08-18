@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ExternalLink, Terminal, Layers } from 'lucide-react';
-import { GithubIcon } from '../ui/Icons';
+import { ExternalLink, Layers, Trophy } from 'lucide-react';
+import { GitHubIcon } from '../ui/GitHubIcon';
 
 export const Footer: React.FC = () => {
   return (
@@ -40,6 +40,7 @@ export const Footer: React.FC = () => {
               <li><Link to="/" className="nav-link">Overview</Link></li>
               <li><Link to="/events" className="nav-link">Workshops & Sessions</Link></li>
               <li><Link to="/projects" className="nav-link">Projects Radar</Link></li>
+              <li><Link to="/leaderboard" className="nav-link">Leaderboard</Link></li>
               <li><a href="/#manifesto" className="nav-link">Software Freedoms</a></li>
             </ul>
           </div>
@@ -48,8 +49,8 @@ export const Footer: React.FC = () => {
             <h4 style={{ fontSize: '0.95rem', marginBottom: 'var(--space-md)' }}>Community</h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.88rem' }}>
               <li>
-                <a href="https://github.com/foss-rit" target="_blank" rel="noopener noreferrer" className="nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  <GithubIcon size={14} /> FOSS RIT GitHub
+                <a href="https://github.com/vertigotalks7/FOSS-RIT" target="_blank" rel="noopener noreferrer" className="nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <GitHubIcon size={14} /> FOSS-RIT GitHub
                 </a>
               </li>
               <li>
@@ -58,9 +59,9 @@ export const Footer: React.FC = () => {
                 </a>
               </li>
               <li>
-                <a href="/docs" target="_blank" rel="noopener noreferrer" className="nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  <Terminal size={14} /> FastAPI Swagger Docs <ExternalLink size={12} />
-                </a>
+                <Link to="/leaderboard" className="nav-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <Trophy size={14} /> Contributor Radar
+                </Link>
               </li>
             </ul>
           </div>
@@ -78,8 +79,20 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="footer-bottom">
-          <span>© 2026 FOSS Club RIT Kottayam x TinkerHub. Released under MIT / CC BY-SA.</span>
-          <span>Crafted with React, Vite & FOSS Mint.</span>
+          <span>© 2026 FOSS Club RIT Kottayam x TinkerHub. Released under MIT.</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            Built by{' '}
+            <a 
+              href="https://github.com/vertigotalks7" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              style={{ color: 'var(--foss-mint)', textDecoration: 'none', fontWeight: 600 }}
+              title="Created by @vertigotalks7"
+            >
+              @vertigotalks7
+            </a>
+            {' '}for RIT Kottayam
+          </span>
         </div>
       </div>
     </footer>

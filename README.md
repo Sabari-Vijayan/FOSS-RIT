@@ -85,3 +85,5 @@ This project is open-source under the [MIT License](https://opensource.org/licen
 
 - **Institution:** [Rajiv Gandhi Institute of Technology (RIT), Kottayam](https://rit.ac.in)
 - **Partner Community:** [TinkerHub Foundation](https://tinkerhub.org)
+- **Created & Maintained by:** [@vertigotalks7](https://github.com/vertigotalks7)
+
