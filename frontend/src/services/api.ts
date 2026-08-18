@@ -7,14 +7,6 @@ const API_BASE = '/api';
 
 const FALLBACK_EVENTS: Event[] = (GITOPS_EVENTS as unknown as Event[]) || [];
 
-const FALLBACK_STATS: ClubStats = {
-  active_members: 12,
-  projects_built: 5,
-  workshops_hosted: 20,
-  open_pull_requests: 3,
-  lines_of_foss_code: 'Genesis'
-};
-
 export const api = {
   // --- Events APIs ---
   async getEvents(): Promise<Event[]> {
@@ -143,15 +135,19 @@ export const api = {
     };
   },
 
-  // --- Stats APIs ---
+  // --- Stats APIs (Dynamically Computed from Datasets) ---
   async getStats(): Promise<ClubStats> {
-    try {
-      const res = await fetch(`${API_BASE}/members/stats`);
-      if (res.ok) return await res.json();
-    } catch {
-      // Handled by fallback
-    }
-    return FALLBACK_STATS;
+    const projCount = (GITOPS_PROJECTS as unknown as Project[])?.length || 0;
+    const contribCount = (GITOPS_LEADERBOARD as any)?.contributors?.length || 0;
+    const eventCount = (GITOPS_EVENTS as unknown as Event[])?.length || 0;
+
+    return {
+      active_members: Math.max(1, contribCount),
+      projects_built: Math.max(1, projCount),
+      workshops_hosted: Math.max(1, eventCount),
+      open_pull_requests: 0,
+      lines_of_foss_code: 'Genesis'
+    };
   },
 
   // --- Leaderboard & XP APIs (GitOps Powered) ---
