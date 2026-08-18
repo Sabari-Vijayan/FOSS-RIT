@@ -1,54 +1,11 @@
 import { Event, EventRSVP, Project, ClubStats, LeaderboardResponse } from '../types';
 import GITOPS_PROJECTS from '../data/projects.json';
 import GITOPS_LEADERBOARD from '../data/leaderboard.json';
+import GITOPS_EVENTS from '../data/events.json';
 
 const API_BASE = '/api';
 
-const FALLBACK_EVENTS: Event[] = [
-  {
-    id: 'git-101',
-    title: 'Git & GitHub 101: Your First Open Source PR',
-    description: 'Hands-on workshop in collaboration with TinkerHub RIT. Learn branching, fork-and-pull workflows, and make your first open source contribution.',
-    date_time: 'Saturday, Aug 29, 2026 • 1:30 PM - 4:30 PM',
-    location: 'MCA Seminar Hall, RIT Kottayam',
-    capacity: 80,
-    registered_count: 38,
-    is_open: true,
-    is_collab: true,
-    source: 'tinkerhub',
-    event_type: 'Workshop',
-    event_url: 'https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor'
-  },
-  {
-    id: 'meet-the-maker',
-    title: 'Meet the Maker: From Beginner to Open Source Hacker',
-    description: 'Interactive talk session on building in public, campus maker culture, and shipping FOSS projects.',
-    date_time: 'Thursday, Sep 03, 2026 • 2:30 PM',
-    location: 'Online (Google Meet)',
-    capacity: 80,
-    registered_count: 0,
-    is_open: true,
-    is_collab: true,
-    source: 'tinkerhub',
-    event_type: 'Talk Session',
-    meet_url: 'https://meet.google.com/mrj-csgy-mez',
-    event_url: 'https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor'
-  },
-  {
-    id: 'tinkerhack-26',
-    title: "TinkerHack '26: 24hr Campus FOSS Hackathon",
-    description: 'Our annual 24-hour hackathon co-hosted with TinkerHub. Build open-source software solutions for campus and public good.',
-    date_time: 'Sep 25 - Sep 26, 2026 • 24 Hours',
-    location: 'Central Computing Facility, RIT Kottayam',
-    capacity: 100,
-    registered_count: 52,
-    is_open: true,
-    is_collab: true,
-    source: 'tinkerhub',
-    event_type: 'Hackathon',
-    event_url: 'https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor'
-  }
-];
+const FALLBACK_EVENTS: Event[] = (GITOPS_EVENTS as unknown as Event[]) || [];
 
 const FALLBACK_STATS: ClubStats = {
   active_members: 12,
@@ -63,21 +20,21 @@ export const api = {
   async getEvents(): Promise<Event[]> {
     try {
       const res = await fetch(`${API_BASE}/events`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+      if (res.ok) return await res.json();
     } catch {
-      return FALLBACK_EVENTS;
+      // Handled by GitOps static feed
     }
+    return (GITOPS_EVENTS as unknown as Event[]) || FALLBACK_EVENTS;
   },
 
   async syncTinkerhubEvents(): Promise<Event[]> {
     try {
       const res = await fetch(`${API_BASE}/events/sync-tinkerhub`, { method: 'POST' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+      if (res.ok) return await res.json();
     } catch {
-      return FALLBACK_EVENTS;
+      // Handled by GitOps static feed
     }
+    return (GITOPS_EVENTS as unknown as Event[]) || FALLBACK_EVENTS;
   },
 
   async rsvpEvent(_eventId: string, rsvpData: EventRSVP): Promise<{ success: boolean; message: string }> {
