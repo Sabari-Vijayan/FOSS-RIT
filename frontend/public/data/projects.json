@@ -97,5 +97,24 @@
     "submitted_by_name": "Ananya Nair",
     "batch": "2025",
     "featured": true
+  },
+  {
+    "id": "proj-test-attend-bot",
+    "name": "RIT Telegram Attendance Bot",
+    "description": "Instant attendance alert bot for KTU students via Telegram webhooks.",
+    "repo_url": "https://github.com/foss-rit/fastapi-production-boilerplate",
+    "tech_stack": [
+      "Python",
+      "Telegram",
+      "FastAPI"
+    ],
+    "stars": 0,
+    "forks": 0,
+    "open_issues": 0,
+    "is_verified_student": true,
+    "submitted_by_username": "test-contributor",
+    "submitted_by_name": "Test Builder",
+    "batch": "2026",
+    "featured": true
   }
 ]

@@ -1,7 +1,7 @@
 {
   "status": "success",
   "timeframe": "all_time",
-  "total_contributors": 4,
+  "total_contributors": 5,
   "contributors": [
     {
       "user_id": "usr-vertigotalks7",
@@ -154,6 +154,44 @@
       ],
       "rank": 4,
       "medal": "#4"
+    },
+    {
+      "user_id": "usr-test-contributor",
+      "username": "test-contributor",
+      "display_name": "Test Builder",
+      "avatar_url": "https://github.com/test-contributor.png",
+      "is_verified_student": true,
+      "xp": 195,
+      "level": 2,
+      "title": "Open Source Novice",
+      "min_xp": 100,
+      "max_xp": 299,
+      "progress": 47,
+      "total_projects": 1,
+      "total_stars": 0,
+      "total_forks": 0,
+      "badges": [
+        {
+          "id": "verified",
+          "name": "Campus Verified",
+          "icon": "\ud83c\udf93",
+          "color": "#08B74F"
+        },
+        {
+          "id": "first_ship",
+          "name": "First Ship",
+          "icon": "\ud83d\ude80",
+          "color": "#2B7FFF"
+        },
+        {
+          "id": "polyglot",
+          "name": "Polyglot",
+          "icon": "\u26a1",
+          "color": "#EC4899"
+        }
+      ],
+      "rank": 5,
+      "medal": "#5"
     }
   ]
 }
