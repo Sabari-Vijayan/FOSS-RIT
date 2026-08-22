@@ -1,11 +1,12 @@
 name: Validate Project Submission PR
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 permissions:
   contents: read
+  issues: write
   pull-requests: write
 
 jobs:
@@ -16,6 +17,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
       - name: Set up Python
