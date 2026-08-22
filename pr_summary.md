@@ -1,6 +1,6 @@
 ### 📋 Project Review Summary for Maintainers
 - **Project Name:** FOSS Club Website
-- **Submitted by:** @vertigotalks7 (Batch: 2026)
+- **Submitted by:** @vertigotalks7 (Batch: 2024)
 - **Repository:** [https://github.com/vertigotalks7/FOSS-RIT](https://github.com/vertigotalks7/FOSS-RIT)
 - **Status:** ✅ Live Public Repository (⭐ 4 | 🍴 1)
 - **Tech Stack:** `"React", "TypeScript", "FastAPI", "Python", "Tailwind"`
