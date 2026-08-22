@@ -3,8 +3,6 @@ name: Validate Project Submission PR
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    paths:
-      - 'content/projects/**'
 
 permissions:
   contents: read
@@ -49,7 +47,7 @@ jobs:
                 issue_number: context.issue.number,
               });
               
-              const botComment = comments.data.find(c => c.body && c.body.includes('Project Review Summary for Maintainers'));
+              const botComment = comments.data.find(c => c.body && (c.body.includes('Project Review Summary for Maintainers') || c.body.includes('Pull Request Validation Failed')));
               
               if (botComment) {
                 await github.rest.issues.updateComment({

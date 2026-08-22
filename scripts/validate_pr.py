@@ -31,14 +31,14 @@ def validate():
     summary_cards = []
     token = os.environ.get("GITHUB_TOKEN")
 
-    # Check for misplaced project files in root or outside content/projects
-    allowed_root_docs = {"readme.md", "contributing.md", "pull_request_template.md", "license.md"}
-    root_mds = [f for f in Path(".").glob("*.md") if f.name.lower() not in allowed_root_docs and f.name != "pr_summary.md"]
+    # 1. Check for misplaced project files in root or outside content/projects
+    allowed_root_docs = {"readme.md", "contributing.md", "pull_request_template.md", "license.md", "pr_summary.md"}
+    root_mds = [f for f in Path(".").glob("*.md") if f.name.lower() not in allowed_root_docs]
     for r_file in root_mds:
         try:
             r_text = r_file.read_text(encoding="utf-8")
-            if r_text.startswith("---") and "repo_url:" in r_text:
-                hard_errors.append(f"Misplaced file `{r_file.name}`: Project files must be saved in `content/projects/{r_file.name}`, not in the root folder!")
+            if r_text.startswith("---") and ("repo_url:" in r_text or "name:" in r_text):
+                hard_errors.append(f"Misplaced file `{r_file.name}`: Project markdown files must be saved in `content/projects/{r_file.name}`, not in the root directory!")
         except Exception:
             pass
 
@@ -156,15 +156,27 @@ def validate():
 
         summary_cards.append(card)
 
+    # If there are hard errors, prepend them to the summary card
+    if hard_errors:
+        error_items = "\n".join([f"- {err}" for err in hard_errors])
+        error_card = f"""> [!CAUTION]
+> ### ❌ Pull Request Validation Failed
+> Please resolve the following issues before this PR can be reviewed:
+> 
+{error_items}
+> 
+> 👉 *Need help? Please place project markdown files inside `content/projects/<your-project>.md` and check [CONTRIBUTING.md](https://github.com/vertigotalks7/FOSS-RIT/blob/main/CONTRIBUTING.md).*"""
+        summary_cards.insert(0, error_card)
+
+    # Write summary for PR comment BEFORE exiting
+    with open("pr_summary.md", "w", encoding="utf-8") as sf:
+        sf.write("\n\n---\n\n".join(summary_cards))
+
     if hard_errors:
         print("❌ Hard Validation Errors Found:")
         for e in hard_errors:
             print(f"  - {e}")
         sys.exit(1)
-
-    # Write summary for PR comment
-    with open("pr_summary.md", "w", encoding="utf-8") as sf:
-        sf.write("\n\n---\n\n".join(summary_cards))
 
     print(f"✅ All {len(md_files)} project files passed syntax and format checks!")
 
