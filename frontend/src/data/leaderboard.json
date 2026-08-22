@@ -9,15 +9,15 @@
       "display_name": "Vertigo Talks",
       "avatar_url": "https://github.com/vertigotalks7.png",
       "is_verified_student": true,
-      "xp": 230,
+      "xp": 250,
       "level": 2,
       "title": "Open Source Novice",
       "min_xp": 100,
       "max_xp": 299,
-      "progress": 65,
+      "progress": 75,
       "total_projects": 1,
       "total_stars": 4,
-      "total_forks": 0,
+      "total_forks": 1,
       "badges": [
         {
           "id": "verified",
