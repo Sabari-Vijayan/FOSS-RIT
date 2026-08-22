@@ -19,25 +19,5 @@
     "submitted_by_name": "Vertigo Talks",
     "batch": "2026",
     "featured": true
-  },
-  {
-    "id": "proj-fastapi-production-boilerplate",
-    "name": "FastAPI Production Starter",
-    "description": "Production-ready async REST API boilerplate with JWT authentication and PostgreSQL pooling.",
-    "repo_url": "https://github.com/foss-rit/fastapi-production-boilerplate",
-    "tech_stack": [
-      "Python",
-      "FastAPI",
-      "PostgreSQL",
-      "Docker"
-    ],
-    "stars": 0,
-    "forks": 0,
-    "open_issues": 0,
-    "is_verified_student": true,
-    "submitted_by_username": "vertigotalks7",
-    "submitted_by_name": "Vertigo Talks",
-    "batch": "2026",
-    "featured": true
   }
 ]
