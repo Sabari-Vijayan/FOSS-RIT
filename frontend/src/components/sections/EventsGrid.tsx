@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Event } from '../../types';
-import { Calendar, MapPin, Ticket, ArrowRight, Search, Zap, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, Ticket, ArrowRight, Search, Zap, ExternalLink, Sparkles, Flame } from 'lucide-react';
 
 interface EventsGridProps {
   onOpenRsvp: (event: Event) => void;
@@ -24,7 +24,7 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategory, setFilterCategory] = useState<'all' | 'workshop' | 'talk' | 'hackathon'>('all');
+  const [filterCategory, setFilterCategory] = useState<'all' | 'upcoming' | 'workshop' | 'talk' | 'hackathon'>('all');
 
   // Automatically fetch and synchronize events on mount
   useEffect(() => {
@@ -43,10 +43,15 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
     fetchEvents();
   }, []);
 
+  const upcomingCount = events.filter(e => e.is_upcoming).length;
+
   const filteredEvents = events.filter(e => {
     const typeLower = (e.event_type || '').toLowerCase();
     
     // Category format filter
+    if (filterCategory === 'upcoming' && !e.is_upcoming) {
+      return false;
+    }
     if (filterCategory === 'workshop' && !typeLower.includes('workshop') && !typeLower.includes('bootcamp') && !typeLower.includes('learning')) {
       return false;
     }
@@ -105,6 +110,7 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
         {/* Category Filters by Session Format */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: 'var(--space-xl)', flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginRight: '4px' }}>Filter:</span>
+          
           <button
             className={`btn btn-sm ${filterCategory === 'all' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setFilterCategory('all')}
@@ -112,6 +118,18 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
           >
             All Sessions ({events.length})
           </button>
+
+          {upcomingCount > 0 && (
+            <button
+              className={`btn btn-sm ${filterCategory === 'upcoming' ? 'btn-primary' : 'btn-ghost'}`}
+              onClick={() => setFilterCategory('upcoming')}
+              style={{ fontSize: '0.8rem', color: filterCategory === 'upcoming' ? undefined : '#FF5A5A' }}
+            >
+              <Flame size={13} color="#FF5A5A" />
+              Upcoming & Live ({upcomingCount})
+            </button>
+          )}
+
           <button
             className={`btn btn-sm ${filterCategory === 'workshop' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setFilterCategory('workshop')}
@@ -152,7 +170,10 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
               const tinkerHubLink = event.event_url || event.registration_link || "https://tinkerhub.org/campus/2160/Rajiv%20Gandhi%20Institute%20of%20Technology,%20Velloor";
 
               return (
-                <div key={event.id} className="event-card interactive-hover-card">
+                <div 
+                  key={event.id} 
+                  className={`event-card interactive-hover-card ${event.is_upcoming ? 'is-upcoming' : ''}`}
+                >
                   <div className="event-top">
                     {/* Banner Image if available */}
                     {event.banner_url && (
@@ -165,7 +186,13 @@ export const EventsGrid: React.FC<EventsGridProps> = ({
                     )}
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', gap: '6px', flexWrap: 'wrap' }}>
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        {event.is_upcoming && (
+                          <span className="event-badge-upcoming" title="Active / Upcoming Campus Event">
+                            <Sparkles size={11} /> UPCOMING
+                          </span>
+                        )}
+
                         {event.is_collab !== false ? (
                           <span className="event-badge-collab" title="In collaboration with TinkerHub RIT">
                             <Zap size={11} /> TinkerHub Collab

@@ -85,6 +85,8 @@ export interface Event {
   registered_count: number;
   is_open?: boolean;
   is_collab?: boolean;
+  is_upcoming?: boolean;
+  raw_date?: string;
   source?: string;
   banner_url?: string;
   event_type?: string;

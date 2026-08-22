@@ -229,6 +229,7 @@ def scrape_live_tinkerhub_events() -> list:
                     name_val = resolve(item.get("name"))
                     desc_val = resolve(item.get("description"))
                     start_date = resolve(item.get("startDate"))
+                    end_date = resolve(item.get("endDate"))
                     banner = resolve(item.get("banner"))
                     location_val = resolve(item.get("location"))
                     event_type = resolve(item.get("type"))
@@ -241,22 +242,38 @@ def scrape_live_tinkerhub_events() -> list:
                         mode = "virtual" if is_virtual else "offline"
                         raw_type = str(event_type).replace("_", " ").title() if event_type else "Workshop"
                         
+                        # Determine if event is upcoming or live
+                        is_upcoming = False
+                        if start_date and isinstance(start_date, str):
+                            try:
+                                clean_start = start_date.replace("Z", "+00:00")
+                                dt_start = datetime.fromisoformat(clean_start)
+                                if dt_start.timestamp() > datetime.now().timestamp() - 86400:
+                                    is_upcoming = True
+                            except Exception:
+                                pass
+
                         events.append({
                             "id": f"th-rit-{str(unique_id or len(events))}",
                             "title": name_val.strip(),
                             "description": desc_val if (desc_val and isinstance(desc_val, str)) else "Campus session organized by TinkerHub RIT & FOSS Club.",
                             "date_time": format_event_date(start_date),
+                            "raw_date": start_date if isinstance(start_date, str) else "",
                             "location": location_val or ("Google Meet Virtual Session" if is_virtual else "RIT Kottayam Campus (Velloor)"),
                             "capacity": number_of_seats if isinstance(number_of_seats, int) else 80,
                             "registered_count": 0,
                             "is_open": True,
                             "is_collab": True,
+                            "is_upcoming": is_upcoming,
                             "source": "tinkerhub",
                             "event_type": raw_type,
                             "meet_url": meet_url if (meet_url and isinstance(meet_url, str) and meet_url.startswith("http")) else None,
                             "event_url": f"https://tinkerhub.org/events/{unique_id}" if (unique_id and str(unique_id).isalnum()) else TINKERHUB_CAMPUS_URL,
                             "banner_url": banner if (banner and isinstance(banner, str) and banner.startswith("http")) else None
                         })
+            
+            # Sort: Upcoming events at the top, then recent events descending
+            events.sort(key=lambda ev: (1 if ev.get("is_upcoming") else 0, ev.get("raw_date") or ""), reverse=True)
             return events
     except Exception as e:
         print(f"[Events Scraper] Notice: {e}. Using fallback events.")
