@@ -26,16 +26,27 @@ def validate():
         print("[Error] `content/projects` directory not found!")
         sys.exit(1)
 
-    md_files = [f for f in content_dir.glob("*.md") if f.name != "_template.md"]
-    
-    if not md_files:
-        print("No project markdown files found to validate.")
-        return
-
     hard_errors = []
     authors = {}
     summary_cards = []
     token = os.environ.get("GITHUB_TOKEN")
+
+    # Check for misplaced project files in root or outside content/projects
+    allowed_root_docs = {"readme.md", "contributing.md", "pull_request_template.md", "license.md"}
+    root_mds = [f for f in Path(".").glob("*.md") if f.name.lower() not in allowed_root_docs and f.name != "pr_summary.md"]
+    for r_file in root_mds:
+        try:
+            r_text = r_file.read_text(encoding="utf-8")
+            if r_text.startswith("---") and "repo_url:" in r_text:
+                hard_errors.append(f"Misplaced file `{r_file.name}`: Project files must be saved in `content/projects/{r_file.name}`, not in the root folder!")
+        except Exception:
+            pass
+
+    md_files = [f for f in content_dir.glob("*.md") if f.name != "_template.md"]
+    
+    if not md_files and not hard_errors:
+        print("No project markdown files found to validate.")
+        return
 
     for f in md_files:
         text = f.read_text(encoding="utf-8")
