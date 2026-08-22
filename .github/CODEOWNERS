@@ -1,0 +1,8 @@
+# Code Owners for FOSS Club RIT
+# Ensures that PRs modifying core code, workflows, or content require maintainer review.
+
+* @vertigotalks7
+/content/ @vertigotalks7
+/.github/ @vertigotalks7
+/frontend/ @vertigotalks7
+/scripts/ @vertigotalks7
