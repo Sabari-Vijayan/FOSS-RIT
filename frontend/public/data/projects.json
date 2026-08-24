@@ -50,8 +50,8 @@
       "Python",
       "Tailwind"
     ],
-    "stars": 4,
-    "forks": 4,
+    "stars": 5,
+    "forks": 5,
     "open_issues": 0,
     "is_verified_student": true,
     "submitted_by_username": "vertigotalks7",
@@ -78,6 +78,26 @@
     "is_verified_student": true,
     "submitted_by_username": "TejaThomas64",
     "submitted_by_name": "Teja Thomas",
+    "batch": "2026",
+    "featured": true
+  },
+  {
+    "id": "proj-gotodo",
+    "name": "GoTodo",
+    "description": "A lightweight command-line Todo application written in Go with persistent JSON storage and Linux AppImage support.",
+    "repo_url": "https://github.com/callmekriztal/Go_Todo",
+    "tech_stack": [
+      "Go",
+      "JSON",
+      "Linux",
+      "AppImage"
+    ],
+    "stars": 1,
+    "forks": 0,
+    "open_issues": 0,
+    "is_verified_student": true,
+    "submitted_by_username": "callmekriztal",
+    "submitted_by_name": "Christy Cyril",
     "batch": "2026",
     "featured": true
   },
