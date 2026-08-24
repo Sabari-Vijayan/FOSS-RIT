@@ -173,9 +173,20 @@ def validate():
 > 👉 *Need help? Please place project markdown files inside `content/projects/<your-project>.md` and check [CONTRIBUTING.md](https://github.com/vertigotalks7/FOSS-RIT/blob/main/CONTRIBUTING.md).*"""
         summary_cards.insert(0, error_card)
 
-    # Write summary for PR comment BEFORE exiting
+    summary_md = "\n\n---\n\n".join(summary_cards)
+
+    # 1. Native GitHub Actions Step Summary (Zero-auth, works on ALL fork PRs without 403 errors)
+    step_summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if step_summary_path:
+        try:
+            with open(step_summary_path, "a", encoding="utf-8") as ss:
+                ss.write(summary_md + "\n")
+        except Exception:
+            pass
+
+    # 2. Write pr_summary.md for optional PR comment step
     with open("pr_summary.md", "w", encoding="utf-8") as sf:
-        sf.write("\n\n---\n\n".join(summary_cards))
+        sf.write(summary_md)
 
     if hard_errors:
         print("❌ Hard Validation Errors Found:")
