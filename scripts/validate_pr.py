@@ -32,7 +32,10 @@ def validate():
     token = os.environ.get("GITHUB_TOKEN")
 
     # 1. Check for misplaced project files in root or outside content/projects
-    allowed_root_docs = {"readme.md", "contributing.md", "pull_request_template.md", "license.md", "pr_summary.md"}
+    allowed_root_docs = {
+        "readme.md", "contributing.md", "maintainer_guide.md", "future_plan.md",
+        "pull_request_template.md", "license.md", "pr_summary.md"
+    }
     root_mds = [f for f in Path(".").glob("*.md") if f.name.lower() not in allowed_root_docs]
     for r_file in root_mds:
         try:
