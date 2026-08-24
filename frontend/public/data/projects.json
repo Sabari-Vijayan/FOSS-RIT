@@ -18,6 +18,27 @@
     "featured": true
   },
   {
+    "id": "proj-tempspace",
+    "name": "TempSpace",
+    "description": "TempSpace is a temporary file-sharing web application designed for quick, frictionless collaboration. Unlike traditional cloud storage platforms, TempSpace does not require user accounts and does not store files permanently.",
+    "repo_url": "https://github.com/Srinanth/TempSpace",
+    "tech_stack": [
+      "React",
+      "Tailwind",
+      "TypeScript",
+      "Node.js",
+      "Supabase"
+    ],
+    "stars": 11,
+    "forks": 0,
+    "open_issues": 0,
+    "is_verified_student": true,
+    "submitted_by_username": "Srinanth",
+    "submitted_by_name": "Srinanth MV",
+    "batch": "2024",
+    "featured": true
+  },
+  {
     "id": "proj-foss-club-website",
     "name": "FOSS Club Website",
     "description": "Official web platform and campus open-source radar for FOSS Club at RIT Kottayam.",
