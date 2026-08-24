@@ -1,5 +1,23 @@
 [
   {
+    "id": "th-rit-Q1R2YDHHYC",
+    "title": "How to Code <a> Pookalam",
+    "description": "An annual creative coding challenge pioneered by TinkerHub RIT during Onam, where participants recreate the traditional Pookalam through code. It transforms a familiar cultural tradition into a playful maker experience, encouraging students to explore programming through creativity rather than complexity\nThis is a pre event for code <a> pookalam competition for the beginners.\nDo register for the main event and join the group via Hub app ",
+    "date_time": "Aug 24, 2026 \u2022 3:30 PM IST",
+    "raw_date": "2026-08-24T15:30:00Z",
+    "location": "Google Meet Virtual Session",
+    "capacity": 80,
+    "registered_count": 0,
+    "is_open": true,
+    "is_collab": true,
+    "is_upcoming": true,
+    "source": "tinkerhub",
+    "event_type": "Learning Program",
+    "meet_url": "https://meet.google.com/hpx-nwci-gtz",
+    "event_url": "https://tinkerhub.org/events/Q1R2YDHHYC",
+    "banner_url": "https://appbucket-hoomans.s3.ap-south-1.amazonaws.com/17874560726370556661000468022.png"
+  },
+  {
     "id": "th-rit-FOMRZEDKX2",
     "title": "Code <a> Pookalam\ud83c\udf3c",
     "description": "An annual creative coding challenge pioneered by TinkerHub RIT during Onam, where participants recreate the traditional Pookalam through code. It transforms a familiar cultural tradition into a playful maker experience, encouraging students to explore programming through creativity rather than complexity\n\nClick \"join now\" to join the official WhatsApp group for code <a> pookalam. Updates will be given there.",
@@ -222,7 +240,7 @@
     "date_time": "Jan 9, 2026 \u2022 7:40 AM IST",
     "raw_date": "2026-01-09T07:40:00Z",
     "location": "CSE Seminar Hall",
-    "capacity": 2507,
+    "capacity": 2523,
     "registered_count": 0,
     "is_open": true,
     "is_collab": true,
