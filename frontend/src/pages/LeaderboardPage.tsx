@@ -57,20 +57,27 @@ export const LeaderboardPage: React.FC<LeaderboardPageProps> = ({ onOpenSubmitPr
   }, [timeframe]);
 
   // Filter contributors
-  const filteredContributors = contributors.filter(c => {
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const matchName = c.username.toLowerCase().includes(q) || 
-                        c.display_name.toLowerCase().includes(q) || 
-                        c.title.toLowerCase().includes(q);
-      if (!matchName) return false;
-    }
+  const filteredContributors = contributors
+    .filter(c => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchName = c.username.toLowerCase().includes(q) || 
+                          c.display_name.toLowerCase().includes(q) || 
+                          c.title.toLowerCase().includes(q);
+        if (!matchName) return false;
+      }
 
-    if (activeTier === 'verified') return c.is_verified_student;
-    if (activeTier !== 'all') return c.level === parseInt(activeTier, 10);
+      if (activeTier === 'verified') return c.is_verified_student;
+      if (activeTier !== 'all') return c.level === parseInt(activeTier, 10);
 
-    return true;
-  });
+      return true;
+    })
+    .sort((a, b) => {
+      if (b.total_forks !== a.total_forks) return b.total_forks - a.total_forks;
+      if (b.total_stars !== a.total_stars) return b.total_stars - a.total_stars;
+      if (b.total_projects !== a.total_projects) return b.total_projects - a.total_projects;
+      return b.xp - a.xp;
+    });
 
   const getTierColor = (level: number) => {
     switch (level) {
@@ -219,6 +226,10 @@ export const LeaderboardPage: React.FC<LeaderboardPageProps> = ({ onOpenSubmitPr
                 <div style={{ background: 'var(--surface-raised)', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--surface-border)' }}>
                   <strong style={{ color: '#EC4899' }}>+15 XP / tech:</strong> Multi-Stack Versatility
                 </div>
+              </div>
+
+              <div style={{ marginTop: '12px', padding: '8px 12px', background: 'var(--surface-raised)', borderRadius: '4px', border: '1px solid var(--foss-mint-glow)', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                <strong style={{ color: 'var(--foss-mint)' }}>📊 Ranking Priority:</strong> Peer Forks (🍴) &gt; GitHub Stars (⭐) &gt; Projects Built (🚀) &gt; Total XP
               </div>
             </div>
           )}

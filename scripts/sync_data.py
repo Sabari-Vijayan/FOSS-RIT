@@ -407,8 +407,8 @@ def main():
             "badges": stats["badges"]
         })
 
-    # Sort contributors by XP descending
-    ranked_list.sort(key=lambda x: (x["xp"], x["total_stars"], x["total_forks"]), reverse=True)
+    # Sort contributors by priority: forks > stars > no. of projects > xp
+    ranked_list.sort(key=lambda x: (x["total_forks"], x["total_stars"], x["total_projects"], x["xp"]), reverse=True)
 
     # Assign Rank & Medals
     for idx, c in enumerate(ranked_list):
