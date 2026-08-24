@@ -1,6 +1,6 @@
 ---
 name: "tinkerfetch"
-description: "Tinkerfetch is a terminal-based "TinkerHub" themed system information tool. It's a custom-designed "skin" for the Fastfetch engine, featuring a dedicated mode to track upcoming community events."
+description: "Tinkerfetch is a terminal-based 'TinkerHub' themed system information tool. It's a custom-designed 'skin' for the Fastfetch engine, featuring a dedicated mode to track upcoming community events."
 repo_url: "https://github.com/Sabari-Vijayan/tinkerfetch"
 tech_stack: ["Shell", "Curl"]
 author: "Sabari-Vijayan"
