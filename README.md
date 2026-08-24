@@ -79,6 +79,13 @@ The platform tracks open-source engagement across campus repositories. XP is cal
 
 ---
 
+## Documentation & Maintainer Guides
+
+- 📘 [**Maintainer Triage Guide**](docs/MAINTAINER_GUIDE.md): 4-step handbook for junior club leads reviewing submissions.
+- 🚀 [**Future Architecture & Scaling Blueprint**](docs/FUTURE_PLAN.md): Multi-year scaling roadmap and handover guide when reaching high project volumes.
+
+---
+
 ## License
 
 This project is open-source under the [MIT License](https://opensource.org/licenses/MIT).
