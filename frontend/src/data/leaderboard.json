@@ -48,44 +48,6 @@
       "medal": "\ud83e\udd47"
     },
     {
-      "user_id": "usr-tejathomas64",
-      "username": "TejaThomas64",
-      "display_name": "Teja Thomas",
-      "avatar_url": "https://github.com/TejaThomas64.png",
-      "is_verified_student": true,
-      "xp": 305,
-      "level": 3,
-      "title": "Byte Craftsman",
-      "min_xp": 300,
-      "max_xp": 699,
-      "progress": 1,
-      "total_projects": 2,
-      "total_stars": 4,
-      "total_forks": 0,
-      "badges": [
-        {
-          "id": "verified",
-          "name": "Campus Verified",
-          "icon": "\ud83c\udf93",
-          "color": "#08B74F"
-        },
-        {
-          "id": "first_ship",
-          "name": "First Ship",
-          "icon": "\ud83d\ude80",
-          "color": "#2B7FFF"
-        },
-        {
-          "id": "polyglot",
-          "name": "Polyglot",
-          "icon": "\u26a1",
-          "color": "#EC4899"
-        }
-      ],
-      "rank": 2,
-      "medal": "\ud83e\udd48"
-    },
-    {
       "user_id": "usr-sabari-vijayan",
       "username": "Sabari-Vijayan",
       "display_name": "Sabari Vijayan",
@@ -120,8 +82,8 @@
           "color": "#EAB308"
         }
       ],
-      "rank": 3,
-      "medal": "\ud83e\udd49"
+      "rank": 2,
+      "medal": "\ud83e\udd48"
     },
     {
       "user_id": "usr-srinanth",
@@ -162,6 +124,44 @@
           "name": "Star Hunter",
           "icon": "\u2b50",
           "color": "#EAB308"
+        }
+      ],
+      "rank": 3,
+      "medal": "\ud83e\udd49"
+    },
+    {
+      "user_id": "usr-tejathomas64",
+      "username": "TejaThomas64",
+      "display_name": "Teja Thomas",
+      "avatar_url": "https://github.com/TejaThomas64.png",
+      "is_verified_student": true,
+      "xp": 305,
+      "level": 3,
+      "title": "Byte Craftsman",
+      "min_xp": 300,
+      "max_xp": 699,
+      "progress": 1,
+      "total_projects": 2,
+      "total_stars": 4,
+      "total_forks": 0,
+      "badges": [
+        {
+          "id": "verified",
+          "name": "Campus Verified",
+          "icon": "\ud83c\udf93",
+          "color": "#08B74F"
+        },
+        {
+          "id": "first_ship",
+          "name": "First Ship",
+          "icon": "\ud83d\ude80",
+          "color": "#2B7FFF"
+        },
+        {
+          "id": "polyglot",
+          "name": "Polyglot",
+          "icon": "\u26a1",
+          "color": "#EC4899"
         }
       ],
       "rank": 4,
