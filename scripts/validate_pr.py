@@ -42,6 +42,11 @@ def validate():
         except Exception:
             pass
 
+    # Check for any non-.md files in content/projects
+    for f in content_dir.iterdir():
+        if f.is_file() and not f.name.endswith(".md") and not f.name.startswith("."):
+            hard_errors.append(f"Invalid file extension `{f.name}`: Project files must strictly have a `.md` extension (e.g. `content/projects/{f.name}.md`)")
+
     md_files = [f for f in content_dir.glob("*.md") if f.name != "_template.md"]
     
     if not md_files and not hard_errors:
