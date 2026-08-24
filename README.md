@@ -1,5 +1,7 @@
 # FOSS Club — RIT Kottayam
 
+> [**📖 Overview**](README.md) • [**👥 Contributing Guide**](CONTRIBUTING.md) • [**📘 Maintainer Handbook**](MAINTAINER_GUIDE.md) • [**🚀 Future Scaling Blueprint**](FUTURE_PLAN.md) • [**⚖️ License**](LICENSE)
+
 The official community website for the Free and Open Source Software (FOSS) Club at Rajiv Gandhi Institute of Technology (RIT), Government Engineering College, Kottayam, in collaboration with the [TinkerHub Foundation](https://tinkerhub.org) (Campus Chapter 2160).
 
 **Motto:** *Learn. Share. Contribute.*
