@@ -60,6 +60,28 @@
     "featured": true
   },
   {
+    "id": "proj-todo",
+    "name": "Todo app",
+    "description": "simple todo web app",
+    "repo_url": "https://github.com/TejaThomas64/todo-app",
+    "tech_stack": [
+      "React",
+      "Vite",
+      "React Router",
+      "Node.js",
+      "Express",
+      "Supabase"
+    ],
+    "stars": 4,
+    "forks": 0,
+    "open_issues": 0,
+    "is_verified_student": true,
+    "submitted_by_username": "TejaThomas64",
+    "submitted_by_name": "Teja Thomas",
+    "batch": "2026",
+    "featured": true
+  },
+  {
     "id": "proj-interview-helper",
     "name": "Interview Helper",
     "description": "AI-powered interview preparation platform for practicing technical interviews and getting AI-based feedback.",
