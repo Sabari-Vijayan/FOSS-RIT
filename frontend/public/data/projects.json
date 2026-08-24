@@ -1,5 +1,23 @@
 [
   {
+    "id": "proj-tinkerfetch",
+    "name": "tinkerfetch",
+    "description": "Tinkerfetch is a terminal-based 'TinkerHub' themed system information tool. It's a custom-designed 'skin' for the Fastfetch engine, featuring a dedicated mode to track upcoming community events.",
+    "repo_url": "https://github.com/Sabari-Vijayan/tinkerfetch",
+    "tech_stack": [
+      "Shell",
+      "Curl"
+    ],
+    "stars": 19,
+    "forks": 0,
+    "open_issues": 0,
+    "is_verified_student": true,
+    "submitted_by_username": "Sabari-Vijayan",
+    "submitted_by_name": "Sabari Vijayan",
+    "batch": "2023",
+    "featured": true
+  },
+  {
     "id": "proj-foss-club-website",
     "name": "FOSS Club Website",
     "description": "Official web platform and campus open-source radar for FOSS Club at RIT Kottayam.",
