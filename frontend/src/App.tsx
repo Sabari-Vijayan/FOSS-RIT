@@ -7,6 +7,7 @@ import { HomePage } from './pages/HomePage';
 import { EventsPage } from './pages/EventsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
+import { ManifestoPage } from './pages/ManifestoPage';
 import { RsvpModal } from './components/modals/RsvpModal';
 import { SubmitProjectGuideModal } from './components/modals/SubmitProjectGuideModal';
 import { GridBackground } from './components/ui/GridBackground';
@@ -92,6 +93,10 @@ export const App: React.FC = () => {
                   onOpenSubmitProject={() => setIsSubmitGuideOpen(true)}
                 />
               } 
+            />
+            <Route 
+              path="/manifesto" 
+              element={<ManifestoPage />} 
             />
           </Routes>
         </main>

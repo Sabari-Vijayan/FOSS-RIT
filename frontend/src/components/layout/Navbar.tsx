@@ -110,13 +110,12 @@ export const Navbar: React.FC = () => {
               </a>
             </li>
             <li>
-              <a 
-                href="/#manifesto" 
-                className="nav-link"
-                onClick={(e) => handleSectionClick(e, 'manifesto')}
+              <NavLink 
+                to="/manifesto" 
+                className={({ isActive }) => `nav-link ${isActive ? 'active-nav-link' : ''}`}
               >
                 Manifesto
-              </a>
+              </NavLink>
             </li>
           </ul>
         </nav>
@@ -153,7 +152,7 @@ export const Navbar: React.FC = () => {
               >
                 <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--surface-border)' }}>
                   <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                    // CHOOSE BUILDER VIBE
+                    CHOOSE BUILDER VIBE
                   </div>
                 </div>
                 <div style={{ padding: '6px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -277,13 +276,13 @@ export const Navbar: React.FC = () => {
             >
               <FileText size={16} /> About Club
             </a>
-            <a 
-              href="/#manifesto" 
-              className="mobile-nav-link"
-              onClick={(e) => handleSectionClick(e, 'manifesto')}
+            <NavLink 
+              to="/manifesto" 
+              className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
             >
               <ShieldAlert size={16} /> Manifesto
-            </a>
+            </NavLink>
 
             {/* Mobile GitHub Link */}
             <a
@@ -299,7 +298,7 @@ export const Navbar: React.FC = () => {
             {/* Mobile Builder Persona Selector */}
             <div style={{ marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid var(--surface-border)' }}>
               <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '8px', fontWeight: 600 }}>
-                // BUILDER PERSONA
+                BUILDER PERSONA
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
                 {(Object.keys(VIBES) as VibeId[]).map(id => {

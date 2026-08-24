@@ -47,7 +47,7 @@ export const EventsPage: React.FC<EventsPageProps> = ({ onOpenRsvp, refreshKey }
           showSearch={true}
           showViewAll={false}
           title="All Scheduled Sessions"
-          tagline="// COMPLETE WORKSHOP ROSTER"
+          tagline="COMPLETE WORKSHOP ROSTER"
           onOpenRsvp={onOpenRsvp}
         />
       </div>

@@ -6,7 +6,7 @@ export const Pillars: React.FC = () => {
       <div className="container">
         <div className="section-header">
           <div>
-            <div className="section-tag">// WHY FOSS CLUB</div>
+            <div className="section-tag">WHY FOSS CLUB</div>
             <h2>Built for Students Who Want to Code for Real</h2>
           </div>
         </div>

@@ -49,7 +49,7 @@ export const MascotBanner: React.FC = () => {
             }}>
               <div>
                 <div className="section-tag" style={{ color: activeVibe.color }}>
-                  // COMMUNITY SPIRIT & PERSONAS
+                  COMMUNITY SPIRIT & PERSONAS
                 </div>
                 <h3 style={{ fontSize: '1.45rem', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span>Choose Your Builder Vibe</span>
@@ -127,7 +127,7 @@ export const MascotBanner: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Terminal size={15} color={activeVibe.color} />
                   <span style={{ fontSize: '0.82rem', fontFamily: 'var(--font-mono)', fontWeight: 600, color: activeVibe.color }}>
-                    {activeVibe.name.toUpperCase()} // TINKERTIP #{activeTipIndex + 1}
+                    {activeVibe.name.toUpperCase()} • TINKERTIP #{activeTipIndex + 1}
                   </span>
                   <span style={{
                     fontSize: '0.72rem',

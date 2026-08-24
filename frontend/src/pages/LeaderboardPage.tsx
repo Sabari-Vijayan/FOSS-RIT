@@ -134,7 +134,7 @@ export const LeaderboardPage: React.FC<LeaderboardPageProps> = ({ onOpenSubmitPr
         <section className="section" style={{ padding: 0 }}>
           <div className="section-header">
             <div>
-              <div className="section-tag">// CAMPUS DEVELOPER RADAR</div>
+              <div className="section-tag">CAMPUS DEVELOPER RADAR</div>
               <h2>All Contributors & Rankings</h2>
             </div>
 

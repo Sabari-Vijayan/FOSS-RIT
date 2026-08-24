@@ -58,7 +58,7 @@ featured: true
           <div>
             <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, lineHeight: 1.2 }}>Feature Your Project</h3>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              // 3-Step Open Source Submission
+              3-Step Open Source Submission
             </span>
           </div>
         </div>

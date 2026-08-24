@@ -55,7 +55,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({ onOpenSubmitProject,
           showSorting={true}
           showViewAll={false}
           title="All Featured Repositories"
-          tagline="// CAMPUS OPEN SOURCE RADAR"
+          tagline="CAMPUS OPEN SOURCE RADAR"
           onOpenSubmitProject={onOpenSubmitProject}
         />
       </div>
