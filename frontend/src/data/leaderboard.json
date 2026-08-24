@@ -1,8 +1,52 @@
 {
   "status": "success",
   "timeframe": "all_time",
-  "total_contributors": 2,
+  "total_contributors": 3,
   "contributors": [
+    {
+      "user_id": "usr-vertigotalks7",
+      "username": "vertigotalks7",
+      "display_name": "Vertigo Talks",
+      "avatar_url": "https://github.com/vertigotalks7.png",
+      "is_verified_student": true,
+      "xp": 310,
+      "level": 3,
+      "title": "Byte Craftsman",
+      "min_xp": 300,
+      "max_xp": 699,
+      "progress": 2,
+      "total_projects": 1,
+      "total_stars": 4,
+      "total_forks": 4,
+      "badges": [
+        {
+          "id": "verified",
+          "name": "Campus Verified",
+          "icon": "\ud83c\udf93",
+          "color": "#08B74F"
+        },
+        {
+          "id": "first_ship",
+          "name": "First Ship",
+          "icon": "\ud83d\ude80",
+          "color": "#2B7FFF"
+        },
+        {
+          "id": "peer_forked",
+          "name": "Peer Forked",
+          "icon": "\ud83c\udf74",
+          "color": "#A855F7"
+        },
+        {
+          "id": "polyglot",
+          "name": "Polyglot",
+          "icon": "\u26a1",
+          "color": "#EC4899"
+        }
+      ],
+      "rank": 1,
+      "medal": "\ud83e\udd47"
+    },
     {
       "user_id": "usr-sabari-vijayan",
       "username": "Sabari-Vijayan",
@@ -38,24 +82,24 @@
           "color": "#EAB308"
         }
       ],
-      "rank": 1,
-      "medal": "\ud83e\udd47"
+      "rank": 2,
+      "medal": "\ud83e\udd48"
     },
     {
-      "user_id": "usr-vertigotalks7",
-      "username": "vertigotalks7",
-      "display_name": "Vertigo Talks",
-      "avatar_url": "https://github.com/vertigotalks7.png",
+      "user_id": "usr-tejathomas64",
+      "username": "TejaThomas64",
+      "display_name": "Teja Thomas",
+      "avatar_url": "https://github.com/TejaThomas64.png",
       "is_verified_student": true,
-      "xp": 270,
+      "xp": 210,
       "level": 2,
       "title": "Open Source Novice",
       "min_xp": 100,
       "max_xp": 299,
-      "progress": 85,
+      "progress": 55,
       "total_projects": 1,
-      "total_stars": 4,
-      "total_forks": 2,
+      "total_stars": 0,
+      "total_forks": 0,
       "badges": [
         {
           "id": "verified",
@@ -76,8 +120,8 @@
           "color": "#EC4899"
         }
       ],
-      "rank": 2,
-      "medal": "\ud83e\udd48"
+      "rank": 3,
+      "medal": "\ud83e\udd49"
     }
   ]
 }

@@ -30,11 +30,34 @@
       "Tailwind"
     ],
     "stars": 4,
-    "forks": 2,
+    "forks": 4,
     "open_issues": 0,
     "is_verified_student": true,
     "submitted_by_username": "vertigotalks7",
     "submitted_by_name": "Vertigo Talks",
+    "batch": "2026",
+    "featured": true
+  },
+  {
+    "id": "proj-interview-helper",
+    "name": "Interview Helper",
+    "description": "AI-powered interview preparation platform for practicing technical interviews and getting AI-based feedback.",
+    "repo_url": "https://github.com/TejaThomas64/Interview-helper",
+    "tech_stack": [
+      "React",
+      "Vite",
+      "React Router",
+      "Node.js",
+      "Express",
+      "Groq API",
+      "Supabase"
+    ],
+    "stars": 0,
+    "forks": 0,
+    "open_issues": 0,
+    "is_verified_student": true,
+    "submitted_by_username": "TejaThomas64",
+    "submitted_by_name": "Teja Thomas",
     "batch": "2026",
     "featured": true
   }
